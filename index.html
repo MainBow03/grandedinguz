@@ -118,7 +118,7 @@
         } catch (e) {
             console.warn("Firebase non configurato o in modalità locale/offline:", e);
         }
-        const yoshi = { id: "yoshi", name: "Yoshi", img: "https://i.pinimg.com/736x/44/39/d9/4439d934fef155334249c6f1c1465925.jpg" };
+        
         const FULL_CAST = [
             { id: "steven", name: "Steven", img: "https://i.pinimg.com/736x/70/98/cf/7098cf34406ae96dde6c8cf11211ff68.jpg" },
             { id: "perla", name: "Perla", img: "https://i.pinimg.com/736x/ef/86/0e/ef860ed3cfb2f8eb7f1f14efdb0c0135.jpg" },
@@ -206,7 +206,7 @@
             { id: "spongebob", name: "Spongebob", img: "https://i.pinimg.com/736x/84/d6/93/84d6932dd04fbed707e5fb5d5129ab04.jpg" },
             { id: "patrick", name: "Patrick", img: "https://i.pinimg.com/736x/a7/ba/c3/a7bac37780a4b2edd17192d863fb31a2.jpg" },
             { id: "squiddi", name: "Squiddi", img: "https://i.pinimg.com/736x/1f/24/5f/1f245fbad2cc659efb461b40041f0343.jpg" },
-            { id: "plankton", name: "Plankton", img: "https://i.pinimg.com/736x/fa/97/1b/fa971b06d58f0195fab57a907b42c5df.jpg" },
+            { id: "plankton", name: "Plankton", img: "https://i.pinimg.com/736x/fa/971b/fa971b06d58f0195fab57a907b42c5df.jpg" },
             { id: "mr_krab", name: "Mr Krab", img: "https://i.pinimg.com/736x/1b/2c/77/1b2c77099fb8c4484f6a2b3f2b1e735c.jpg" },
             { id: "bugs_bunny", name: "Bugs Bunny", img: "https://i.pinimg.com/1200x/4a/38/8c/4a388c42e7f471fc4b6f37c2666fa104.jpg" },
             { id: "legoshi", name: "Legoshi", img: "https://i.pinimg.com/736x/56/9e/06/569e0611727318e83862336b65380373.jpg" },
@@ -253,14 +253,12 @@
             sortedCast.forEach(c => {
                 const regex = new RegExp(`\\b${c.name}\\b`, 'gi');
                 
-                // Creiamo un blocco inline per mostrare la foto arrotondata con il nome sotto.
-                // Usiamo mx-1 per distanziarlo dal testo adiacente e align-middle per allinearlo alla riga.
                 const replacement = `
                     <span class="inline-flex flex-col items-center justify-center mx-1.5 align-middle group cursor-pointer translate-y-1">
                         <img src="${c.img}" alt="${c.name}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/4c1d95/ffffff?text=${c.name}';" class="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover border border-purple-500/50 shadow-sm group-hover:scale-110 group-hover:border-purple-400 transition-all duration-300" />
                         <span class="text-[9px] md:text-[10px] font-extrabold text-gray-300 mt-0.5 leading-none uppercase tracking-tight group-hover:text-white transition-colors">${c.name}</span>
                     </span>
-                `.trim().replace(/\n\s+/g, ' '); // minimizziamo la stringa
+                `.trim().replace(/\n\s+/g, ' '); 
                 
                 processedText = processedText.replace(regex, replacement);
             });
@@ -274,8 +272,6 @@
         const generateEpisodeStory = async (aliveCast, immuneChar, episodeNum, pastEpisodes = [], apiKey = "") => {
             const aliveNames = aliveCast.map(c => c.name).join(', ');
             
-            // Creiamo un riassunto testuale pulito (senza HTML) delle ultime puntate per dare contesto all'IA
-            // Prendiamo solo le ultime 3 puntate per non sovraccaricare la memoria
             const historyContext = pastEpisodes.length > 0 
                 ? pastEpisodes.slice(-3).map((ep, i) => `Riassunto Episodio precedente:\n${ep.replace(/<[^>]*>?/gm, '')}`).join("\n\n")
                 : "Questa è la primissima puntata. I concorrenti varcano la Porta Rossa del Grande Fratello. Nessuno si conosce bene, ma le prime impressioni sono fondamentali.";
@@ -296,7 +292,8 @@
             4. FORMATO: Restituisci SOLO IL CODICE HTML del racconto (usa solo i tag <p> e <i> per i pensieri/confessionali). 
             5. DIVIETO ASSOLUTO: EVITA categoricamente di usare il tag <b> sui nomi propri dei personaggi. NON inserire i tag \`\`\`html.`;
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            // FIXED: Modello aggiornato a gemini-1.5-flash
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             let finalStoryText = "";
 
@@ -308,7 +305,7 @@
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: systemPrompt }] }],
                         systemInstruction: { parts: [{ text: "Sei la voce del Grande Fratello. Scrivi solo l'HTML interno del racconto. Descrivi intrighi, confessionali, amori e liti nella Casa. Mantieni coerenza narrativa." }] },
-                        generationConfig: { temperature: 0.8 } // Un po' di creatività ma senza perdere il filo logico
+                        generationConfig: { temperature: 0.8 }
                     })
                 });
                 
@@ -317,19 +314,18 @@
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     let text = result.candidates[0].content.parts[0].text;
-                    // Rimuove eventuali blocchi markdown se Gemini ignora le istruzioni
+                    // Rimuove eventuali blocchi markdown
                     text = text.replace(/```html/gi, '').replace(/```/g, '');
                     finalStoryText = text;
                 }
             } catch (e) {
                 console.log("Generazione racconto predefinita (offline) in corso...", e.message);
-                // FALLBACK OFFLINE MIGLIORATO (usiamo di nuovo il random ma solo come piano B estremo)
                 const shuffledCast = [...aliveCast].sort(() => 0.5 - Math.random());
                 const p1 = shuffledCast[0] ? shuffledCast[0].name : immuneChar.name;
                 const p2 = shuffledCast[1] ? shuffledCast[1].name : p1;
                 
                 if (episodeNum === 1) {
-                    finalStoryText = `<p><b>ATTENZIONE: Stai giocando senza API Key! Le storie saranno ripetitive.</b></p><p>La Porta Rossa si spalanca e i concorrenti entrano ufficialmente nella Casa del Grande Fratello!</p>
+                    finalStoryText = `<p><b>ATTENZIONE: Stai giocando senza API Key funzionante! Le storie saranno ripetitive.</b></p><p>La Porta Rossa si spalanca e i concorrenti entrano ufficialmente nella Casa del Grande Fratello!</p>
                     <p>Non appena varcata la soglia, la tensione era già alle stelle tra ${p1} e ${p2}, che si sono subito scontrati ferocemente per accaparrarsi il letto migliore.</p>
                     <p>A sbaragliare tutti e a guadagnarsi l'IMMUNITÀ per questa settimana è stato/a ${immuneChar.name}!</p>`;
                 } else {
@@ -339,7 +335,6 @@
                 }
             }
 
-            // Applica i badge avatar a tutti i nomi trovati nel testo
             return highlightNamesInText(finalStoryText, aliveCast);
         };
 
@@ -351,15 +346,12 @@
             const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || 'AIzaSyBGds2K-vi7O5Whcv1wnpuZrPqwxas-rrs');
             const [lobbyId, setLobbyId] = useState(null);
             const [lobbyData, setLobbyData] = useState(null);
-            const [publicLobbies, setPublicLobbies] = useState([]);
             const [view, setView] = useState('menu');
 
-            // Gestione della selezione del Cast
-            const [castMode, setCastMode] = useState('random'); // 'random' o 'manual'
+            const [castMode, setCastMode] = useState('random'); 
             const [customSize, setCustomSize] = useState(12);
             const [manualSelectedIds, setManualSelectedIds] = useState([]);
 
-            // Firebase initial auth check if configured
             useEffect(() => {
                 if (isFirebaseAvailable && auth) {
                     auth.signInAnonymously().catch(console.error);
@@ -381,7 +373,7 @@
                     players: [{ id: user.uid, name: nickname }],
                     cast: [],
                     eliminated: [],
-                    pastEpisodes: [], // Nuovo: salviamo lo storico delle puntate
+                    pastEpisodes: [],
                     gameState: 'lobby',
                     currentEpisodeNum: 1,
                     currentEpisodeText: '',
@@ -415,7 +407,7 @@
                     ],
                     cast: [],
                     eliminated: [],
-                    pastEpisodes: [], // Nuovo: salviamo lo storico
+                    pastEpisodes: [], 
                     gameState: 'lobby',
                     currentEpisodeNum: 1,
                     currentEpisodeText: '',
@@ -468,14 +460,12 @@
             const generateNextEpisode = async (currentCast, currentLobby) => {
                 const immuneChar = currentCast[Math.floor(Math.random() * currentCast.length)];
                 
-                // Genera il testo usando l'IA, passandogli le puntate precedenti e la API Key
                 const text = await generateEpisodeStory(currentCast, immuneChar, currentLobby.currentEpisodeNum, currentLobby.pastEpisodes, geminiApiKey);
 
                 setLobbyData(prev => ({
                     ...prev,
                     gameState: 'episode_reading',
                     currentEpisodeText: text,
-                    // Aggiungiamo l'episodio appena generato allo storico per le puntate future
                     pastEpisodes: [...(prev.pastEpisodes || []), text], 
                     immuneId: immuneChar.id,
                     nominationVotes: {},
@@ -499,7 +489,6 @@
 
                 currentCast.forEach(c => nominationTallies[c.id] = 0);
 
-                // Ciascun concorrente BOT vota in modo totalmente anonimo un compagno non immune
                 currentCast.forEach(voterChar => {
                     let validTargets = nonImmuneCast.filter(t => t.id !== voterChar.id);
                     if (validTargets.length === 0) validTargets = nonImmuneCast;
@@ -510,10 +499,8 @@
                     }
                 });
 
-                // Ordiniamo i non-immuni dai più votati ai meno votati dalla casa
                 const sortedCast = [...nonImmuneCast].sort((a, b) => nominationTallies[b.id] - nominationTallies[a.id]);
 
-                // I primi 3 più votati finiscono al televoto del pubblico
                 const numNominees = Math.min(3, sortedCast.length);
                 const selectedNominees = sortedCast.slice(0, numNominees);
 
@@ -543,7 +530,6 @@
                     }
                 });
 
-                // Trova il concorrente più votato per l'eliminazione dal pubblico
                 const sortedNominees = [...lobbyData.nominees].sort((a, b) => voteCounts[b.id] - voteCounts[a.id]);
                 const maxVotes = voteCounts[sortedNominees[0].id];
                 const tiedForFirst = sortedNominees.filter(c => voteCounts[c.id] === maxVotes);
@@ -553,13 +539,11 @@
 
                 let eliminatedChar;
                 if (isTie) {
-                    // Se c'è un pareggio, il conduttore (il gioco) sceglie casualmente tra chi ha pareggiato
                     eliminatedChar = tiedForFirst[Math.floor(Math.random() * tiedForFirst.length)];
                 } else {
                     eliminatedChar = tiedForFirst[0];
                 }
 
-                // Costruiamo uno script ad ALTA SUSPENSE dinamico in base a chi è rimasto e ai pareggi
                 const script = [
                     { type: 'text', content: "🔔 Il televoto del pubblico è UFFICIALMENTE CHIUSO!", sound: null },
                     { type: 'text', content: `I concorrenti a rischio sono: <b>${lobbyData.nominees.map(c => c.name).join(', ')}</b>.`, sound: 'heartbeat' },
@@ -581,20 +565,17 @@
                 } else {
                     const savedNominees = sortedNominees.filter(c => c.id !== eliminatedChar.id);
                     if (savedNominees.length === 2) {
-                        // Caso classico: 3 nominati
                         script.push({ type: 'text', content: `✨ Il primo concorrente SALVO è... <b>${savedNominees[0].name.toUpperCase()}</b>!`, sound: 'saved' });
                         script.push({ type: 'text', content: `Rimangono a rischio <b>${savedNominees[1].name}</b> e <b>${eliminatedChar.name}</b>...`, sound: 'heartbeat' });
                         script.push({ type: 'text', content: "La tensione si taglia col coltello. Chi di voi due uscirà?", sound: 'heartbeat' });
                         script.push({ type: 'text', content: "Il pubblico ha deciso che ad abbandonare PER SEMPRE il reality show è...", sound: 'heartbeat' });
                         script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
                     } else if (savedNominees.length === 1) {
-                        // Caso: 2 nominati
                         script.push({ type: 'text', content: `Siete rimasti in due: <b>${savedNominees[0].name}</b> e <b>${eliminatedChar.name}</b>.`, sound: 'heartbeat' });
                         script.push({ type: 'text', content: "Solo uno di voi due continuerà l'avventura.", sound: 'heartbeat' });
                         script.push({ type: 'text', content: "Il pubblico ha deciso che ad abbandonare PER SEMPRE il reality show è...", sound: 'heartbeat' });
                         script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
                     } else {
-                        // Caso estremo di backup
                         script.push({ type: 'text', content: `La decisione è stata presa. L'avventura si ferma qui.`, sound: 'heartbeat' });
                         script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
                     }
@@ -610,7 +591,6 @@
                 playSound('heartbeat');
             };
 
-            // Avanzamento automatico dello script di suspense con audio integrato
             useEffect(() => {
                 let timer;
                 if (lobbyData && lobbyData.gameState === 'elimination_reveal') {
@@ -670,7 +650,6 @@
                                 onChange={(e) => setNickname(e.target.value)}
                             />
                             
-                            {/* Input per API Key con salvataggio automatico */}
                             <div className="text-left">
                                 <label className="text-xs text-purple-300 font-bold ml-1 mb-1 block">Google Gemini API Key (Per storie IA dinamiche):</label>
                                 <input 
@@ -732,7 +711,6 @@
                             <div className="bg-purple-900/30 p-6 rounded-2xl border border-purple-500/30 space-y-6">
                                 <h3 className="text-xl font-bold text-purple-200 text-center">Configura il Cast</h3>
                                 
-                                {/* Selettore Modalità */}
                                 <div className="flex bg-black/40 p-1.5 rounded-xl border border-purple-500/30">
                                     <button 
                                         onClick={() => setCastMode('random')}
