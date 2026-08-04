@@ -238,8 +238,7 @@ const FULL_CAST = [
 { id: "ferocia", name: "Ferocia", img: "https://i.pinimg.com/736x/9c/31/15/9c31155d6aa8c5ee9b807c9d022d0fcb.jpg" },
 { id: "yzma", name: "Yzma", img: "https://i.pinimg.com/736x/74/4a/5e/744a5e33c09419f27d951f1851ddcff3.jpg" },
 { id: "timmy", name: "Timmy", img: "https://i.pinimg.com/736x/29/7d/9b/297d9b0fb4cbb4667a8082e32e5b8482.jpg" },
-            { id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e7/46/82e7461e1f194725e93e786a5ef94c31.jpg" },
-            { id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e746/82e7461e1f194725e93e786a5ef94c31.jpg" },
+{ id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e7/46/82e7461e1f194725e93e786a5ef94c31.jpg" },
 { id: "wanda", name: "Wanda", img: "https://i.pinimg.com/736x/99/87/b7/9987b79d555daf6e60f2c501064ac38f.jpg" },
 { id: "vicky", name: "Vicky", img: "https://i.pinimg.com/736x/ba/3d/43/ba3d439aeb0206dffad3edc934a07e00.jpg" },
 { id: "phineas", name: "Phineas", img: "https://i.pinimg.com/736x/12/15/26/121526111b6f2e460b21722b25269642.jpg" },
@@ -352,7 +351,7 @@ const { useState, useEffect } = React;
 
 const [user, setUser] = useState({ uid: 'user-' + Math.random().toString(36).substring(2, 7) });
 const [nickname, setNickname] = useState('Giocatore');
-const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || 'AIzaSyBGds2K-vi7O5Whcv1wnpuZrPqwxas-rrs');
+const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || '');
 const [lobbyId, setLobbyId] = useState(null);
 const [lobbyData, setLobbyData] = useState(null);
 const [view, setView] = useState('menu');
@@ -1321,14 +1320,15 @@ const isLoser = !isWinner;
 
 return (
 <div key={c.id} className={`flex flex-col items-center transition-all duration-1000 ${isRevealPhase && isWinner ? 'scale-125 z-10' : isRevealPhase && isLoser ? 'opacity-30 scale-75 grayscale' : 'scale-100 animate-pulse'}`}>
-<div className={`w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 shadow-xl transition-colors duration-500 ${isRevealPhase && isWinner ? 'border-yellow-400 shadow-[0_0_40px_rgba(250,204,21,0.9)]' : isRevealPhase && isLoser ? 'border-gray-600' : 'border-gray-400'}`}>
+<div className={`relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 shadow-xl transition-colors duration-500 ${isRevealPhase && isWinner ? 'border-yellow-400 shadow-[0_0_40px_rgba(250,204,21,1)]' : 'border-gray-500'}`}>
 <img src={c.img} alt={c.name} className="w-full h-full object-cover" onError={(e) => e.target.src = `https://placehold.co/150x150/1f2937/ffffff?text=${c.name}`} />
 </div>
-<span className={`mt-4 font-extrabold uppercase tracking-wide transition-colors ${isRevealPhase && isWinner ? 'text-yellow-400 text-2xl drop-shadow-md' : 'text-gray-300'}`}>
+{isRevealPhase && isWinner && <Crown className="absolute -top-6 w-12 h-12 text-yellow-400 drop-shadow-lg animate-bounce" />}
+<span className={`mt-3 font-extrabold uppercase tracking-wide transition-colors ${isRevealPhase && isWinner ? 'text-yellow-400 text-2xl' : isRevealPhase && isLoser ? 'text-gray-500' : 'text-gray-300'}`}>
 {c.name}
 </span>
 </div>
-)
+);
 })}
 </div>
 
@@ -1336,50 +1336,69 @@ return (
 {(lobbyData.finaleScript || []).slice(0, scriptIndex + 1).map((step, idx) => (
 <p 
 key={idx} 
-className={`transition-all duration-500 ${idx === scriptIndex ? 'scale-110' : 'opacity-50'} ${idx === lobbyData.finaleScript.length - 1 ? 'text-yellow-400 font-extrabold text-4xl md:text-5xl mt-6 animate-bounce drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]' : 'text-xl md:text-2xl font-serif text-gray-100'}`}
+className={`transition-all duration-500 ${idx === scriptIndex ? 'scale-110' : 'opacity-50'} ${idx === (lobbyData.finaleScript?.length || 0) - 1 ? 'text-yellow-400 font-extrabold text-3xl md:text-5xl mt-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]' : 'text-lg md:text-2xl font-serif text-gray-100'}`}
 dangerouslySetInnerHTML={{__html: step.content}}
 ></p>
 ))}
 </div>
 
 {scriptIndex >= (lobbyData.finaleScript?.length || 0) - 1 && user.uid === lobbyData.host && (
-<button onClick={() => {
-const winner = cast.find(c => c.id === lobbyData.pendingWinnerId);
-const loser = cast.find(c => c.id === lobbyData.pendingLoserId);
-updateLobbyState({
-gameState: 'finished',
-cast: [winner],
-eliminated: [...lobbyData.eliminated, loser]
-});
-}} className="mt-8 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 px-10 py-4 rounded-full font-extrabold text-lg shadow-xl hover:scale-105 transition-all text-black">
-Celebra il Vincitore!
+<button onClick={() => updateLobbyState({ gameState: 'finished' })} className="mt-8 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 px-10 py-4 rounded-full font-extrabold text-lg text-black shadow-[0_0_20px_rgba(250,204,21,0.5)] hover:scale-105 transition-all">
+Scopri la Classifica Finale
 </button>
 )}
 </div>
 )}
 
 {gameState === 'finished' && (
-<div className="text-center space-y-6 my-auto bg-gray-800 p-8 rounded-3xl border border-yellow-500 shadow-2xl">
+<div className="my-auto bg-gray-800 p-8 rounded-3xl border-2 border-yellow-500 text-center space-y-6 shadow-[0_0_30px_rgba(250,204,21,0.3)]">
 <Crown className="w-24 h-24 text-yellow-400 mx-auto animate-bounce" />
-<h2 className="text-4xl md:text-5xl font-extrabold text-yellow-400">ABBIAMO UN VINCITORE!</h2>
-<p className="text-2xl md:text-3xl text-gray-200">Trionfa la stagione: <span className="font-extrabold text-white bg-purple-600/50 px-4 py-1 rounded-xl">{cast[0]?.name}</span>!</p>
-<button onClick={leaveLobby} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 px-8 py-3 rounded-xl font-bold text-lg shadow-lg">Torna al Menu</button>
+<h2 className="text-4xl font-black text-yellow-400 mb-2">IL REALITY È FINITO!</h2>
+<p className="text-xl text-gray-200">Grazie per aver seguito e votato in questa incredibile edizione.</p>
+
+<div className="mt-8 bg-gray-900/50 p-6 rounded-2xl border border-gray-700 max-w-2xl mx-auto max-h-[50vh] overflow-y-auto custom-scrollbar">
+<h3 className="text-2xl font-bold text-white mb-6">La Classifica Definitiva</h3>
+<div className="space-y-3 text-left">
+{lobbyData.cast.map((c) => (
+<div key={c.id} className="flex items-center gap-4 bg-yellow-900/30 p-3 rounded-xl border border-yellow-500/50 transform hover:scale-[1.02] transition-transform">
+    <span className="text-3xl font-black text-yellow-500 w-8 text-center">1</span>
+    <img src={c.img} className="w-16 h-16 rounded-lg object-cover shadow-lg" onError={(e) => e.target.src = `https://placehold.co/100x100/1f2937/ffffff?text=${c.name}`} />
+    <span className="font-bold text-2xl text-white">{c.name} <span className="text-yellow-500 text-sm block">VINCITORE ASSOLUTO</span></span>
+</div>
+))}
+
+{[...lobbyData.eliminated].reverse().map((c, i) => (
+<div key={c.id} className="flex items-center gap-4 bg-gray-800 p-3 rounded-xl border border-gray-700 hover:bg-gray-700 transition-colors">
+    <span className="text-xl font-bold text-gray-500 w-8 text-center">{i + 2}</span>
+    <img src={c.img} className="w-12 h-12 rounded-lg object-cover opacity-80" onError={(e) => e.target.src = `https://placehold.co/100x100/1f2937/ffffff?text=${c.name}`} />
+    <span className="font-semibold text-gray-300 text-lg">{c.name}</span>
+</div>
+))}
+</div>
+</div>
+
+<button onClick={leaveLobby} className="mt-8 bg-white hover:bg-gray-200 text-black px-8 py-3 rounded-xl font-bold transition-all shadow-md">
+Torna al Menu Principale
+</button>
 </div>
 )}
+
 </div>
 </div>
 );
 };
 
-switch (view) {
-case 'menu': return renderMenu();
-case 'lobby': return renderLobbyRoom();
-case 'game': return renderGame();
-default: return renderMenu();
-}
+return (
+<div className="min-h-screen bg-gray-900 text-white font-sans selection:bg-purple-500/30">
+{view === 'menu' && renderMenu()}
+{view === 'lobby' && renderLobbyRoom()}
+{view === 'game' && renderGame()}
+</div>
+);
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<RealityShowGame />);
 </script>
 </body>
+</html>
