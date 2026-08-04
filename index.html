@@ -37,7 +37,6 @@
         .suspense-box {
             animation: pulse-red 2s infinite;
         }
-        /* Assicura che le righe di testo con le immagini si allarghino bene */
         .story-text p {
             line-height: 1.8;
             margin-bottom: 0.75rem;
@@ -179,7 +178,7 @@
             { id: "bowser", name: "Bowser", img: "https://i.pinimg.com/1200x/cf/3f/ec/cf3fec1f6b9334e0255065f150fa97a9.jpg" },
             { id: "yoshi", name: "Yoshi", img: "https://i.pinimg.com/736x/44/39/d9/4439d934fef155334249c6f1c1465925.jpg" },
             { id: "rosalinda", name: "Rosalinda", img: "https://i.pinimg.com/736x/da/87/05/da87056e17f0b24989898b059a1b0560.jpg" },
-            { id: "daisy", name: "Daisy", img: "https://i.pinimg.com/1200x/ea/97/0d/ea970dafc3efe6c77a92d12b890ffb29.jpg" },
+            { id: "daisy", name: "Daisy", img: "https://i.pinimg.com/1200x/ea/970d/ea970dafc3efe6c77a92d12b890ffb29.jpg" },
             { id: "peach", name: "Peach", img: "https://i.pinimg.com/736x/98/65/39/986539a9ccd1408d51eb061df724377f.jpg" },
             { id: "pauline", name: "Pauline", img: "https://i.pinimg.com/736x/86/83/ee/8683ee7c89735311e61addebf517a3de.jpg" },
             { id: "donkey_kong", name: "Donkey Kong", img: "https://i.pinimg.com/736x/7a/76/a9/7a76a963dad38a1b913bdec0832d6be9.jpg" },
@@ -247,7 +246,6 @@
 
         const highlightNamesInText = (rawText, aliveCast) => {
             let processedText = rawText;
-            // Ordina per lunghezza nome (decrescente) per evitare di colorare sottostringhe
             const sortedCast = [...aliveCast].sort((a, b) => b.name.length - a.name.length);
             
             sortedCast.forEach(c => {
@@ -263,7 +261,6 @@
                 processedText = processedText.replace(regex, replacement);
             });
             
-            // Ripulisce eventuali tag <b> lasciati dall'LLM attorno al nostro span
             processedText = processedText.replace(/<b>\s*(<span[^>]+>.*?<\/span>)\s*<\/b>/gi, '$1');
             
             return processedText;
@@ -292,7 +289,6 @@
             4. FORMATO: Restituisci SOLO IL CODICE HTML del racconto (usa solo i tag <p> e <i> per i pensieri/confessionali). 
             5. DIVIETO ASSOLUTO: EVITA categoricamente di usare il tag <b> sui nomi propri dei personaggi. NON inserire i tag \`\`\`html.`;
 
-            // FIXED: Modello aggiornato a gemini-1.5-flash
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             let finalStoryText = "";
@@ -314,7 +310,6 @@
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     let text = result.candidates[0].content.parts[0].text;
-                    // Rimuove eventuali blocchi markdown
                     text = text.replace(/```html/gi, '').replace(/```/g, '');
                     finalStoryText = text;
                 }
@@ -362,7 +357,40 @@
                 }
             }, []);
 
-            const createLobby = () => {
+            // === FUNZIONE AGGIUNTA PER L'ONLINE ===
+            const updateLobbyState = async (updates) => {
+                if (db && lobbyId) {
+                    try {
+                        await db.collection('lobbies').doc(lobbyId).update(updates);
+                    } catch(e) {
+                        console.error("Errore aggiornamento Firebase:", e);
+                    }
+                } else {
+                    // Fallback se si gioca offline
+                    setLobbyData(prev => ({ ...prev, ...updates }));
+                }
+            };
+
+            // === LISTENER FIREBASE IN TEMPO REALE ===
+            useEffect(() => {
+                if (!isFirebaseAvailable || !db || !lobbyId) return;
+                
+                const unsubscribe = db.collection('lobbies').doc(lobbyId).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        setLobbyData(data);
+                        
+                        // Sposta tutti i giocatori nella schermata di gioco quando l'host avvia
+                        if (data.status === 'playing' && view !== 'game') {
+                            setView('game');
+                        }
+                    }
+                });
+                
+                return () => unsubscribe();
+            }, [lobbyId, view]);
+
+            const createLobby = async () => {
                 if (!nickname.trim()) return alert("Inserisci un nickname!");
                 const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
                 const newLobby = {
@@ -386,42 +414,42 @@
                     readyForNomination: []
                 };
 
-                setLobbyData(newLobby);
+                if (db) {
+                    await db.collection('lobbies').doc(newId).set(newLobby);
+                } else {
+                    setLobbyData(newLobby);
+                }
+                
                 setLobbyId(newId);
                 setView('lobby');
             };
 
-            const joinLobby = (code) => {
+            const joinLobby = async (code) => {
                 if (!nickname.trim()) return alert("Inserisci un nickname!");
                 if (!code) return;
 
                 const codeUpper = code.toUpperCase();
-                const newLobby = {
-                    id: codeUpper,
-                    name: `Lobby ${codeUpper}`,
-                    host: 'host-id',
-                    status: 'waiting',
-                    players: [
-                        { id: 'host-id', name: 'Host' },
-                        { id: user.uid, name: nickname }
-                    ],
-                    cast: [],
-                    eliminated: [],
-                    pastEpisodes: [], 
-                    gameState: 'lobby',
-                    currentEpisodeNum: 1,
-                    currentEpisodeText: '',
-                    immuneId: null,
-                    nominationVotes: {},
-                    nominees: [],
-                    publicVotes: {},
-                    eliminationScript: [],
-                    scriptIndex: 0,
-                    readyForNomination: []
-                };
-                setLobbyData(newLobby);
-                setLobbyId(codeUpper);
-                setView('lobby');
+                
+                if (db) {
+                    const docRef = db.collection('lobbies').doc(codeUpper);
+                    const docSnap = await docRef.get();
+                    
+                    if (docSnap.exists) {
+                        const data = docSnap.data();
+                        const isAlreadyIn = data.players.some(p => p.id === user.uid);
+                        if (!isAlreadyIn) {
+                            await docRef.update({
+                                players: firebase.firestore.FieldValue.arrayUnion({ id: user.uid, name: nickname })
+                            });
+                        }
+                        setLobbyId(codeUpper);
+                        setView('lobby');
+                    } else {
+                        alert("Lobby non trovata o codice errato!");
+                    }
+                } else {
+                    alert("Firebase offline. Impossibile unirsi.");
+                }
             };
 
             const leaveLobby = () => {
@@ -430,7 +458,9 @@
                 setView('menu');
             };
 
-            const startCustomGame = () => {
+            const startCustomGame = async () => {
+                if (user.uid !== lobbyData.host) return alert("Solo l'Host può iniziare il gioco!");
+
                 let selectedCast = [];
                 if (castMode === 'random') {
                     const count = Math.min(Math.max(3, Number(customSize) || 12), FULL_CAST.length);
@@ -445,16 +475,14 @@
                 }
 
                 const updated = {
-                    ...lobbyData,
                     status: 'playing',
                     cast: selectedCast,
                     gameState: 'episode_generation',
                     currentEpisodeNum: 1
                 };
-                setLobbyData(updated);
-                setView('game');
-
-                generateNextEpisode(selectedCast, updated);
+                
+                await updateLobbyState(updated);
+                generateNextEpisode(selectedCast, { ...lobbyData, ...updated });
             };
 
             const generateNextEpisode = async (currentCast, currentLobby) => {
@@ -462,11 +490,10 @@
                 
                 const text = await generateEpisodeStory(currentCast, immuneChar, currentLobby.currentEpisodeNum, currentLobby.pastEpisodes, geminiApiKey);
 
-                setLobbyData(prev => ({
-                    ...prev,
+                await updateLobbyState({
                     gameState: 'episode_reading',
                     currentEpisodeText: text,
-                    pastEpisodes: [...(prev.pastEpisodes || []), text], 
+                    pastEpisodes: [...(currentLobby.pastEpisodes || []), text], 
                     immuneId: immuneChar.id,
                     nominationVotes: {},
                     nominees: [],
@@ -474,14 +501,12 @@
                     eliminationScript: [],
                     scriptIndex: 0,
                     readyForNomination: []
-                }));
-            };
-
-            const startNominationPhase = () => {
-                setLobbyData(prev => ({ ...prev, gameState: 'house_nomination' }));
+                });
             };
 
             const processHouseNominations = () => {
+                if (user.uid !== lobbyData.host) return; // Solo l'host calcola le nomination
+
                 const currentCast = lobbyData.cast;
                 const nonImmuneCast = currentCast.filter(c => c.id !== lobbyData.immuneId);
                 const nominationTallies = {};
@@ -504,20 +529,21 @@
                 const numNominees = Math.min(3, sortedCast.length);
                 const selectedNominees = sortedCast.slice(0, numNominees);
 
-                setLobbyData(prev => ({
-                    ...prev,
+                updateLobbyState({
                     nominees: selectedNominees,
                     nominationTallies: nominationTallies,
                     gameState: 'public_voting'
-                }));
+                });
             };
 
-            const submitPublicVote = (charId) => {
+            const submitPublicVote = async (charId) => {
                 const newPublicVotes = { ...lobbyData.publicVotes, [user.uid]: charId };
-                const updated = { ...lobbyData, publicVotes: newPublicVotes };
-                setLobbyData(updated);
+                await updateLobbyState({ publicVotes: newPublicVotes });
 
-                closeTelevoto(newPublicVotes);
+                // Se l'utente è l'host, processa la chiusura automatica del televoto (logica originale mantenuta)
+                if (user.uid === lobbyData.host) {
+                    closeTelevoto(newPublicVotes);
+                }
             };
 
             const closeTelevoto = (publicVotesObj) => {
@@ -581,56 +607,60 @@
                     }
                 }
 
-                setLobbyData(prev => ({
-                    ...prev,
+                updateLobbyState({
                     gameState: 'elimination_reveal',
                     eliminationScript: script,
                     scriptIndex: 0,
                     pendingEliminatedId: eliminatedChar.id
-                }));
+                });
                 playSound('heartbeat');
             };
 
             useEffect(() => {
                 let timer;
-                if (lobbyData && lobbyData.gameState === 'elimination_reveal') {
+                if (lobbyData && lobbyData.gameState === 'elimination_reveal' && user.uid === lobbyData.host) {
                     if (lobbyData.scriptIndex < lobbyData.eliminationScript.length - 1) {
                         timer = setTimeout(() => {
                             const nextIndex = lobbyData.scriptIndex + 1;
-                            const currentStep = lobbyData.eliminationScript[nextIndex];
-                            if (currentStep && currentStep.sound) {
-                                playSound(currentStep.sound);
-                            }
-                            setLobbyData(prev => ({ ...prev, scriptIndex: nextIndex }));
+                            updateLobbyState({ scriptIndex: nextIndex });
                         }, 3000);
                     }
                 }
+                
+                // Per i client che non sono host, eseguiamo i suoni in base all'indice
+                if (lobbyData && lobbyData.gameState === 'elimination_reveal' && lobbyData.eliminationScript) {
+                    const currentStep = lobbyData.eliminationScript[lobbyData.scriptIndex];
+                    if (currentStep && currentStep.sound) {
+                        playSound(currentStep.sound);
+                    }
+                }
+
                 return () => clearTimeout(timer);
-            }, [lobbyData]);
+            }, [lobbyData?.gameState, lobbyData?.scriptIndex]);
 
             const proceedToNextEpisode = () => {
+                if (user.uid !== lobbyData.host) return; // Solo l'host gestisce i cambi turno
+
                 const eliminatedChar = lobbyData.cast.find(c => c.id === lobbyData.pendingEliminatedId);
                 const newCast = lobbyData.cast.filter(c => c.id !== lobbyData.pendingEliminatedId);
                 const newEliminated = [...lobbyData.eliminated, eliminatedChar];
 
                 if (newCast.length <= 1) {
-                    setLobbyData(prev => ({
-                        ...prev,
+                    updateLobbyState({
                         gameState: 'finished',
                         cast: newCast,
                         eliminated: newEliminated
-                    }));
+                    });
                 } else {
                     const nextNum = lobbyData.currentEpisodeNum + 1;
                     const updated = {
-                        ...lobbyData,
                         gameState: 'episode_generation',
                         cast: newCast,
                         eliminated: newEliminated,
                         currentEpisodeNum: nextNum
                     };
-                    setLobbyData(updated);
-                    generateNextEpisode(newCast, updated);
+                    updateLobbyState(updated);
+                    generateNextEpisode(newCast, { ...lobbyData, ...updated });
                 }
             };
 
@@ -887,22 +917,20 @@
                                         </p>
                                         <button 
                                             onClick={() => {
-                                                setLobbyData(prev => {
-                                                    const currentReady = prev.readyForNomination || [];
-                                                    const isUserReady = currentReady.includes(user.uid);
-                                                    let newReady = [...currentReady];
-                                                    
-                                                    if (isUserReady) {
-                                                        newReady = newReady.filter(id => id !== user.uid);
-                                                    } else {
-                                                        newReady.push(user.uid);
-                                                    }
+                                                const currentReady = lobbyData.readyForNomination || [];
+                                                let newReady = [...currentReady];
+                                                
+                                                if (newReady.includes(user.uid)) {
+                                                    newReady = newReady.filter(id => id !== user.uid);
+                                                } else {
+                                                    newReady.push(user.uid);
+                                                }
 
-                                                    if (newReady.length >= prev.players.length) {
-                                                        return { ...prev, gameState: 'house_nomination', readyForNomination: [] };
-                                                    }
-                                                    return { ...prev, readyForNomination: newReady };
-                                                });
+                                                if (newReady.length >= lobbyData.players.length) {
+                                                    updateLobbyState({ gameState: 'house_nomination', readyForNomination: [] });
+                                                } else {
+                                                    updateLobbyState({ readyForNomination: newReady });
+                                                }
                                             }} 
                                             className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg flex justify-center items-center gap-2 ${
                                                 (lobbyData.readyForNomination || []).includes(user.uid)
@@ -927,9 +955,13 @@
                                         💡 <b>Regola del Pubblico:</b> Votano solo i concorrenti della casa tra di loro! I più votati finiranno al tuo giudizio al Televoto!
                                     </div>
 
-                                    <button onClick={processHouseNominations} className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-bold text-xl hover:scale-[1.02] transition-all shadow-lg flex items-center justify-center gap-2">
-                                        Scopri i Nominati della Casa <ArrowRight />
-                                    </button>
+                                    {user.uid === lobbyData.host ? (
+                                        <button onClick={processHouseNominations} className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-bold text-xl hover:scale-[1.02] transition-all shadow-lg flex items-center justify-center gap-2">
+                                            Scopri i Nominati della Casa <ArrowRight />
+                                        </button>
+                                    ) : (
+                                        <p className="text-purple-400 mt-4 animate-pulse">In attesa che l'Host processi le nomination...</p>
+                                    )}
                                 </div>
                             )}
 
@@ -944,6 +976,7 @@
                                         <div className="text-center bg-gray-800 p-8 rounded-2xl border border-gray-700">
                                             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                                             <h4 className="text-2xl font-bold">Voto Registrato con successo!</h4>
+                                            <p className="text-gray-400 mt-2">In attesa che gli altri giocatori votino...</p>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
@@ -1000,7 +1033,7 @@
                                         ))}
                                     </div>
 
-                                    {scriptIndex >= eliminationScript.length - 1 && (
+                                    {scriptIndex >= eliminationScript.length - 1 && user.uid === lobbyData.host && (
                                         <button onClick={proceedToNextEpisode} className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 px-10 py-4 rounded-full font-extrabold text-lg shadow-xl hover:scale-105 transition-all">
                                             Prosegui al Prossimo Episodio
                                         </button>
