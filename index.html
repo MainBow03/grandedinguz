@@ -1,113 +1,121 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reality Show Game Online</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <!-- Babel Standalone -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Firebase JS SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-        @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-            50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.9); }
-        }
-        .suspense-box {
-            animation: pulse-red 2s infinite;
-        }
-        .story-text p {
-            line-height: 1.8;
-            margin-bottom: 0.75rem;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reality Show Game</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- React & ReactDOM -->
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<!-- Babel Standalone for JSX compilation -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Firebase JS SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+background: rgba(0, 0, 0, 0.2);
+border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+background: rgba(255, 255, 255, 0.3);
+border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+background: rgba(255, 255, 255, 0.5);
+}
+@keyframes pulse-red {
+0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.9); }
+}
+.suspense-box {
+animation: pulse-red 2s infinite;
+}
+.story-text p {
+line-height: 1.8;
+margin-bottom: 0.75rem;
+}
+</style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen font-sans">
-    <div id="root"></div>
+<body class="bg-gray-900 text-white min-h-screen">
+<div id="root"></div>
 
-    <script type="text/babel">
-        const playSound = (type) => {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if (type === 'heartbeat') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(80, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.25);
-                    gain.gain.setValueAtTime(0.9, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.25);
-                } else if (type === 'elimination') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(250, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 1.2);
-                    gain.gain.setValueAtTime(1.0, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 1.2);
-                } else if (type === 'saved') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, ctx.currentTime);
-                    osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
-                    gain.gain.setValueAtTime(0.6, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.4);
-                }
-            } catch(e) {}
-        };
+<script type="text/babel">
+const playSound = (type) => {
+try {
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+if (type === 'heartbeat') {
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sine';
+osc.frequency.setValueAtTime(80, ctx.currentTime);
+osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.25);
+gain.gain.setValueAtTime(0.9, ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start();
+osc.stop(ctx.currentTime + 0.25);
+} else if (type === 'elimination') {
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'sawtooth';
+osc.frequency.setValueAtTime(250, ctx.currentTime);
+osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 1.2);
+gain.gain.setValueAtTime(1.0, ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start();
+osc.stop(ctx.currentTime + 1.2);
+} else if (type === 'saved') {
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(440, ctx.currentTime);
+osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
+gain.gain.setValueAtTime(0.6, ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start();
+osc.stop(ctx.currentTime + 0.4);
+}
+} catch(e) {}
+};
 
-        const Users = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-        const Play = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><polygon points="6 3 20 12 6 21 6 3"/></svg>;
-        const Crown = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M2 4l3 12h14l3-12-6 7-4-8-4 8-6-7z"/><circle cx="12" cy="19" r="1"/></svg>;
-        const Skull = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="M12 2v2"/><path d="M18 10a6 6 0 0 0-12 0c0 4 3 6 3 10h6c0-4 3-6 3-10z"/></svg>;
-        const CheckCircle = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
-        const ArrowRight = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
-        const LogOut = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
-        const RefreshCw = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
-        const Wifi = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>;
-        const WifiOff = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>;
+const Users = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const Play = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><polygon points="6 3 20 12 6 21 6 3"/></svg>;
+const Crown = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M2 4l3 12h14l3-12-6 7-4-8-4 8-6-7z"/><circle cx="12" cy="19" r="1"/></svg>;
+const Skull = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="M12 2v2"/><path d="M18 10a6 6 0 0 0-12 0c0 4 3 6 3 10h6c0-4 3-6 3-10z"/></svg>;
+const CheckCircle = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const Clock = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+const ArrowRight = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+const LogOut = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const Home = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const RefreshCw = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
-        // INIZIALIZZAZIONE FIREBASE
-        let db = null;
-        let auth = null;
-        let isFirebaseAvailable = false;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'reality-show-app-default';
+        // INIZIALIZZAZIONE FIREBASE (Con Configurazione Aggiunta)
+        const appId = "1:216458781312:web:2c396c1f781f6f6182bc65";
+let db = null;
+let auth = null;
+let isFirebaseAvailable = false;
 
-        try {
+try {
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            if (firebaseConfig && firebaseConfig.apiKey) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+                isFirebaseAvailable = true;
+            }
             const firebaseConfig = {
               apiKey: "AIzaSyCHPpWKT0HHzfuThxchIoWF_LdQYMyvBiE",
               authDomain: "big-brother-votazioni.firebaseapp.com",
@@ -118,793 +126,961 @@
               measurementId: "G-TCSS4RWHFZ"
             };
             
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
+            firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             auth = firebase.auth();
             isFirebaseAvailable = true;
-        } catch (e) {
-            console.warn("Firebase offline o fallito:", e);
-        }
-        
-        const FULL_CAST = [
-            { id: "steven", name: "Steven", img: "https://i.pinimg.com/736x/70/98/cf/7098cf34406ae96dde6c8cf11211ff68.jpg" },
-            { id: "perla", name: "Perla", img: "https://i.pinimg.com/736x/ef/86/0e/ef860ed3cfb2f8eb7f1f14efdb0c0135.jpg" },
-            { id: "garnet", name: "Garnet", img: "https://i.pinimg.com/1200x/df/77/0f/df770ffb5866a4773afcd2f05d6fcd60.jpg" },
-            { id: "ametista", name: "Ametista", img: "https://i.pinimg.com/736x/09/0e/63/090e632f37b989073cb1c675ab0e4d58.jpg" },
-            { id: "peridot", name: "Peridot", img: "https://i.pinimg.com/736x/b5/30/24/b53024865467b768b22c5410f2b3f5e5.jpg" },
-            { id: "lapis", name: "Lapis", img: "https://i.pinimg.com/736x/26/1e/12/261e12c44243b064de61e52c735d7306.jpg" },
-            { id: "diamante_blu", name: "Diamante Blu", img: "https://i.pinimg.com/736x/fe/e6/fd/fee6fddff9d940b3410079f7dd9b19cd.jpg" },
-            { id: "diamante_giallo", name: "Diamante Giallo", img: "https://i.pinimg.com/736x/2a/97/ca/2a97cac3561d4425acaf6acc5b010024.jpg" },
-            { id: "diamante_bianco", name: "Diamante Bianco", img: "https://i.pinimg.com/736x/f8/57/5f/f8575f776adac7111faebf0e6d48bb95.jpg" },
-            { id: "bismuth", name: "Bismuth", img: "https://i.pinimg.com/736x/15/43/83/15438339f9384326e28d67629f75288d.jpg" },
-            { id: "lars", name: "Lars", img: "https://i.pinimg.com/736x/b3/d7/b4/b3d7b42c01d5f4f8de858fe3758c9576.jpg" },
-            { id: "sadie", name: "Sadie", img: "https://i.pinimg.com/736x/2c/65/ef/2c65eff8b1ed4af63a259590294ef258.jpg" },
-            { id: "gwen", name: "Gwen", img: "https://i.pinimg.com/736x/57/9f/ed/579fedb8439e0bf4ccb5958a5934c955.jpg" },
-            { id: "cody", name: "Cody", img: "https://i.pinimg.com/736x/ca/09/fd/ca09fdfc85b3f013470e2faf8706e2ae.jpg" },
-            { id: "zoey", name: "Zoey", img: "https://i.pinimg.com/1200x/8c/a8/74/8ca8748b682e1c67179643c68456d404.jpg" },
-            { id: "courtney", name: "Courtney", img: "https://i.pinimg.com/1200x/0a/c5/52/0ac5521dddf64ab0b5d08e6e36a2c10b.jpg" },
-            { id: "heather", name: "Heather", img: "https://i.pinimg.com/1200x/2b/f1/5f/2bf15f9703ba3b796fbda16b4c564df0.jpg" },
-            { id: "jake", name: "Jake", img: "https://i.pinimg.com/736x/ea/95/44/ea9544aef82c1dd05e57f50c7e798473.jpg" },
-            { id: "tom", name: "Tom", img: "https://i.pinimg.com/736x/16/4a/80/164a80bd3bd4b74b62bba156328ebc8e.jpg" },
-            { id: "fiore", name: "Fiore", img: "https://i.pinimg.com/736x/a9/1b/1d/a91b1d88a7fcf431999295f7f9396ed8.jpg" },
-            { id: "alec", name: "Alec", img: "https://i.pinimg.com/736x/0c/8e/9d/0c8e9d4a3f5b30683fe8dc124a1486cf.jpg" },
-            { id: "riya", name: "Riya", img: "https://i.pinimg.com/736x/b1/4b/1d/b14b1d4d9b6a1b857caa55b0bfd47446.jpg" },
-            { id: "spongebob", name: "Spongebob", img: "https://i.pinimg.com/736x/84/d6/93/84d6932dd04fbed707e5fb5d5129ab04.jpg" },
-            { id: "patrick", name: "Patrick", img: "https://i.pinimg.com/736x/a7/ba/c3/a7bac37780a4b2edd17192d863fb31a2.jpg" },
-            { id: "sonic", name: "Sonic", img: "https://i.pinimg.com/736x/65/60/9e/65609e1a4272a562399f8c43ac1b1b18.jpg" },
-            { id: "bowser", name: "Bowser", img: "https://i.pinimg.com/1200x/cf/3f/ec/cf3fec1f6b9334e0255065f150fa97a9.jpg" }
-        ];
-
-        const highlightNamesInText = (rawText, aliveCast) => {
-            let processedText = rawText;
-            const sortedCast = [...aliveCast].sort((a, b) => b.name.length - a.name.length);
-            
-            sortedCast.forEach(c => {
-                const regex = new RegExp(`\\b${c.name}\\b`, 'gi');
-                const replacement = `
-                    <span class="inline-flex flex-col items-center justify-center mx-1.5 align-middle group cursor-pointer translate-y-1">
-                        <img src="${c.img}" alt="${c.name}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/4c1d95/ffffff?text=${c.name}';" class="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover border border-purple-500/50 shadow-sm group-hover:scale-110 group-hover:border-purple-400 transition-all duration-300" />
-                        <span class="text-[9px] md:text-[10px] font-extrabold text-gray-300 mt-0.5 leading-none uppercase tracking-tight group-hover:text-white transition-colors">${c.name}</span>
-                    </span>
-                `.trim().replace(/\n\s+/g, ' '); 
-                processedText = processedText.replace(regex, replacement);
-            });
-            
-            return processedText.replace(/<b>\s*(<span[^>]+>.*?<\/span>)\s*<\/b>/gi, '$1');
-        };
-
-        const generateEpisodeStory = async (aliveCast, immuneChar, episodeNum, pastEpisodes = [], apiKey = "") => {
-            const aliveNames = aliveCast.map(c => c.name).join(', ');
-            const historyContext = pastEpisodes.length > 0 
-                ? pastEpisodes.slice(-3).map((ep) => `Riassunto Episodio precedente:\n${ep.replace(/<[^>]*>?/gm, '')}`).join("\n\n")
-                : "Prima puntata. I concorrenti varcano la Porta Rossa del Grande Fratello.";
-
-            let systemPrompt = `Sei l'autore e la voce del "Grande Fratello". 
-            Cast: ${aliveNames}. 
-            Immune: ${immuneChar.name}. 
-            Storico: ${historyContext}
-            Scrivi il racconto per la Settimana ${episodeNum}. 
-            FORMATO: Usa solo tag <p> e <i>. NESSUN tag <b> sui nomi propri. Nessun tag \`\`\`html.`;
-
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-            try {
-                if (!apiKey || apiKey.trim() === "") throw new Error("API Key mancante");
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: systemPrompt }] }],
-                        generationConfig: { temperature: 0.8 }
-                    })
-                });
-                
-                if (!response.ok) throw new Error("API Error");
-                const result = await response.json();
-                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    let text = result.candidates[0].content.parts[0].text;
-                    return highlightNamesInText(text.replace(/```html/gi, '').replace(/```/g, ''), aliveCast);
-                }
-            } catch (e) {
-                console.log("Fallback storia locale...", e.message);
-            }
-
-            const shuffledCast = [...aliveCast].sort(() => 0.5 - Math.random());
-            const p1 = shuffledCast[0] ? shuffledCast[0].name : immuneChar.name;
-            const p2 = shuffledCast[1] ? shuffledCast[1].name : p1;
-            
-            const fallbackText = `<p>La tensione nella Casa è altissima!</p>
-            <p>Il vero terremoto della settimana è stato lo scontro in Confessionale tra ${p1} e ${p2}.</p>
-            <p>Nel frattempo, ${immuneChar.name} ha saputo giocare d'astuzia, aggiudicandosi l'Immunità per questa nomination!</p>`;
-
-            return highlightNamesInText(fallbackText, aliveCast);
-        };
-
-        function RealityShowGame() {
-            const { useState, useEffect, useRef } = React;
-
-            // ID utente persistente per evitare disallineamento durante il caricamento di Auth
-            const getOrCreatePersistentUid = () => {
-                let pid = localStorage.getItem('game_user_uid');
-                if (!pid) {
-                    pid = 'user_' + Math.random().toString(36).substring(2, 9);
-                    localStorage.setItem('game_user_uid', pid);
-                }
-                return pid;
-            };
-
-            const [user, setUser] = useState({ uid: getOrCreatePersistentUid() });
-            const [nickname, setNickname] = useState(localStorage.getItem('game_nickname') || 'Giocatore');
-            const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || '');
-            const [lobbyId, setLobbyId] = useState(null);
-            const [lobbyData, setLobbyData] = useState(null);
-            const [view, setView] = useState('menu');
-            const [onlineStatus, setOnlineStatus] = useState('connecting'); // 'online', 'offline', 'connecting'
-
-            const [castMode, setCastMode] = useState('random'); 
-            const [customSize, setCustomSize] = useState(12);
-            const [manualSelectedIds, setManualSelectedIds] = useState([]);
-
-            // Autenticazione Firebase e Stato Online
-            useEffect(() => {
-                if (isFirebaseAvailable && auth) {
-                    auth.signInAnonymously()
-                        .then((cred) => {
-                            setOnlineStatus('online');
-                            if (cred.user) {
-                                setUser({ uid: cred.user.uid });
-                                localStorage.setItem('game_user_uid', cred.user.uid);
-                            }
-                        })
-                        .catch(err => {
-                            console.warn("Errore Auth Firebase:", err);
-                            setOnlineStatus('offline');
-                        });
-                } else {
-                    setOnlineStatus('offline');
-                }
-            }, []);
-
-            const updateLobbyState = async (updates) => {
-                if (db && lobbyId && onlineStatus === 'online') {
-                    try {
-                        await db.collection('lobbies').doc(lobbyId).update(updates);
-                    } catch(e) {
-                        console.error("Errore aggiornamento Firebase:", e);
-                        alert("Errore di connessione a Firebase: " + e.message);
-                    }
-                } else {
-                    setLobbyData(prev => ({ ...prev, ...updates }));
-                }
-            };
-
-            // Listener per aggiornamenti stanza in tempo reale
-            useEffect(() => {
-                if (!isFirebaseAvailable || !db || !lobbyId) return;
-                
-                const unsubscribe = db.collection('lobbies').doc(lobbyId).onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        setLobbyData(data);
-                        
-                        if (data.status === 'playing' && view !== 'game') {
-                            setView('game');
-                        }
-                    } else {
-                        alert("La stanza è stata chiusa o non esiste più.");
-                        leaveLobby();
-                    }
-                }, (error) => {
-                    console.error("Errore snapshot Firebase:", error);
-                });
-                
-                return () => unsubscribe();
-            }, [lobbyId, view]);
-
-            const createLobby = async () => {
-                if (!nickname.trim()) return alert("Inserisci un nickname!");
-                localStorage.setItem('game_nickname', nickname);
-                
-                const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const newLobby = {
-                    id: newId,
-                    name: `Lobby di ${nickname}`,
-                    host: user.uid,
-                    status: 'waiting',
-                    players: [{ id: user.uid, name: nickname }],
-                    cast: [],
-                    eliminated: [],
-                    pastEpisodes: [],
-                    gameState: 'lobby',
-                    currentEpisodeNum: 1,
-                    currentEpisodeText: '',
-                    immuneId: null,
-                    nominationVotes: {},
-                    nominees: [],
-                    publicVotes: {},
-                    eliminationScript: [],
-                    scriptIndex: 0,
-                    readyForNomination: []
-                };
-
-                if (db && onlineStatus === 'online') {
-                    try {
-                        await db.collection('lobbies').doc(newId).set(newLobby);
-                        setLobbyId(newId);
-                        setView('lobby');
-                    } catch(e) {
-                        alert("Impossibile creare la stanza online. Verifica la tua connessione o le regole di Firebase. Errore: " + e.message);
-                    }
-                } else {
-                    setLobbyData(newLobby);
-                    setLobbyId(newId);
-                    setView('lobby');
-                }
-            };
-
-            const joinLobby = async (code) => {
-                if (!nickname.trim()) return alert("Inserisci un nickname!");
-                if (!code) return alert("Inserisci un codice valido!");
-                localStorage.setItem('game_nickname', nickname);
-
-                const codeUpper = code.toUpperCase().trim();
-                
-                if (db && onlineStatus === 'online') {
-                    try {
-                        const docRef = db.collection('lobbies').doc(codeUpper);
-                        const docSnap = await docRef.get();
-                        
-                        if (docSnap.exists) {
-                            const data = docSnap.data();
-                            const isAlreadyIn = data.players.some(p => p.id === user.uid);
-                            
-                            if (!isAlreadyIn) {
-                                const newPlayers = [...data.players, { id: user.uid, name: nickname }];
-                                await docRef.update({ players: newPlayers });
-                            }
-                            setLobbyId(codeUpper);
-                            setView('lobby');
-                        } else {
-                            alert("Stanza non trovata! Verifica il codice.");
-                        }
-                    } catch(e) {
-                        alert("Errore nell'unirsi alla stanza: " + e.message);
-                    }
-                } else {
-                    alert("Firebase non è connesso. Modalità online non disponibile.");
-                }
-            };
-
-            const leaveLobby = () => {
-                setLobbyId(null);
-                setLobbyData(null);
-                setView('menu');
-            };
-
-            const startCustomGame = async () => {
-                if (user.uid !== lobbyData.host) return alert("Solo l'Host può iniziare il gioco!");
-
-                let selectedCast = [];
-                if (castMode === 'random') {
-                    const count = Math.min(Math.max(3, Number(customSize) || 12), FULL_CAST.length);
-                    const shuffled = [...FULL_CAST].sort(() => 0.5 - Math.random());
-                    selectedCast = shuffled.slice(0, count);
-                } else {
-                    selectedCast = FULL_CAST.filter(c => manualSelectedIds.includes(c.id));
-                    if (selectedCast.length < 3) {
-                        alert("Seleziona almeno 3 concorrenti!");
-                        return;
-                    }
-                }
-
-                const updated = {
-                    status: 'playing',
-                    cast: selectedCast,
-                    gameState: 'episode_generation',
-                    currentEpisodeNum: 1
-                };
-                
-                await updateLobbyState(updated);
-                generateNextEpisode(selectedCast, { ...lobbyData, ...updated });
-            };
-
-            const generateNextEpisode = async (currentCast, currentLobby) => {
-                const immuneChar = currentCast[Math.floor(Math.random() * currentCast.length)];
-                const text = await generateEpisodeStory(currentCast, immuneChar, currentLobby.currentEpisodeNum, currentLobby.pastEpisodes, geminiApiKey);
-
-                await updateLobbyState({
-                    gameState: 'episode_reading',
-                    currentEpisodeText: text,
-                    pastEpisodes: [...(currentLobby.pastEpisodes || []), text], 
-                    immuneId: immuneChar.id,
-                    nominationVotes: {},
-                    nominees: [],
-                    publicVotes: {},
-                    eliminationScript: [],
-                    scriptIndex: 0,
-                    readyForNomination: []
-                });
-            };
-
-            const processHouseNominations = () => {
-                if (user.uid !== lobbyData.host) return;
-
-                const currentCast = lobbyData.cast;
-                const nonImmuneCast = currentCast.filter(c => c.id !== lobbyData.immuneId);
-                const nominationTallies = {};
-
-                currentCast.forEach(c => nominationTallies[c.id] = 0);
-
-                currentCast.forEach(voterChar => {
-                    let validTargets = nonImmuneCast.filter(t => t.id !== voterChar.id);
-                    if (validTargets.length === 0) validTargets = nonImmuneCast;
-                    if (validTargets.length > 0) {
-                        const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
-                        nominationTallies[randomTarget.id] = (nominationTallies[randomTarget.id] || 0) + 1;
-                    }
-                });
-
-                const sortedCast = [...nonImmuneCast].sort((a, b) => nominationTallies[b.id] - nominationTallies[a.id]);
-                const selectedNominees = sortedCast.slice(0, Math.min(3, sortedCast.length));
-
-                updateLobbyState({
-                    nominees: selectedNominees,
-                    nominationTallies: nominationTallies,
-                    gameState: 'public_voting'
-                });
-            };
-
-            const submitPublicVote = async (charId) => {
-                const newPublicVotes = { ...(lobbyData.publicVotes || {}), [user.uid]: charId };
-                await updateLobbyState({ publicVotes: newPublicVotes });
-
-                if (user.uid === lobbyData.host) {
-                    closeTelevoto(newPublicVotes);
-                }
-            };
-
-            const closeTelevoto = (publicVotesObj) => {
-                const voteCounts = {};
-                lobbyData.nominees.forEach(c => voteCounts[c.id] = 0);
-
-                Object.values(publicVotesObj).forEach(votedId => {
-                    if (voteCounts[votedId] !== undefined) voteCounts[votedId]++;
-                });
-
-                const sortedNominees = [...lobbyData.nominees].sort((a, b) => voteCounts[b.id] - voteCounts[a.id]);
-                const maxVotes = voteCounts[sortedNominees[0].id];
-                const tiedForFirst = sortedNominees.filter(c => voteCounts[c.id] === maxVotes);
-                const trulySaved = sortedNominees.filter(c => voteCounts[c.id] < maxVotes);
-                
-                const isTie = tiedForFirst.length > 1;
-                const eliminatedChar = isTie ? tiedForFirst[Math.floor(Math.random() * tiedForFirst.length)] : tiedForFirst[0];
-
-                const script = [
-                    { type: 'text', content: "🔔 Il televoto del pubblico è UFFICIALMENTE CHIUSO!", sound: null },
-                    { type: 'text', content: `I concorrenti a rischio sono: <b>${lobbyData.nominees.map(c => c.name).join(', ')}</b>.`, sound: 'heartbeat' },
-                    { type: 'text', content: "Ho la busta con il verdetto definitivo...", sound: 'heartbeat' }
-                ];
-
-                if (isTie) {
-                    if (trulySaved.length > 0) {
-                        script.push({ type: 'text', content: `✨ Il pubblico ha deciso di SALVARE... ${trulySaved.map(c => `<b>${c.name.toUpperCase()}</b>`).join(' e ')}!`, sound: 'saved' });
-                    }
-                    script.push({ type: 'text', content: `Pareggio al televoto! Il conduttore deve prendere la decisione finale...`, sound: 'heartbeat' });
-                    script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
-                } else {
-                    const savedNominees = sortedNominees.filter(c => c.id !== eliminatedChar.id);
-                    if (savedNominees.length > 0) {
-                        script.push({ type: 'text', content: `✨ Salvo/i: <b>${savedNominees.map(s => s.name.toUpperCase()).join(', ')}</b>!`, sound: 'saved' });
-                    }
-                    script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
-                }
-
-                updateLobbyState({
-                    gameState: 'elimination_reveal',
-                    eliminationScript: script,
-                    scriptIndex: 0,
-                    pendingEliminatedId: eliminatedChar.id
-                });
-            };
-
-            useEffect(() => {
-                let timer;
-                if (lobbyData && lobbyData.gameState === 'elimination_reveal' && user.uid === lobbyData.host) {
-                    if (lobbyData.scriptIndex < lobbyData.eliminationScript.length - 1) {
-                        timer = setTimeout(() => {
-                            updateLobbyState({ scriptIndex: lobbyData.scriptIndex + 1 });
-                        }, 3000);
-                    }
-                }
-                
-                if (lobbyData && lobbyData.gameState === 'elimination_reveal' && lobbyData.eliminationScript) {
-                    const currentStep = lobbyData.eliminationScript[lobbyData.scriptIndex];
-                    if (currentStep && currentStep.sound) {
-                        playSound(currentStep.sound);
-                    }
-                }
-
-                return () => clearTimeout(timer);
-            }, [lobbyData?.gameState, lobbyData?.scriptIndex]);
-
-            const proceedToNextEpisode = () => {
-                if (user.uid !== lobbyData.host) return;
-
-                const eliminatedChar = lobbyData.cast.find(c => c.id === lobbyData.pendingEliminatedId);
-                const newCast = lobbyData.cast.filter(c => c.id !== lobbyData.pendingEliminatedId);
-                const newEliminated = [...(lobbyData.eliminated || []), eliminatedChar];
-
-                if (newCast.length <= 1) {
-                    updateLobbyState({ gameState: 'finished', cast: newCast, eliminated: newEliminated });
-                } else {
-                    const updated = {
-                        gameState: 'episode_generation',
-                        cast: newCast,
-                        eliminated: newEliminated,
-                        currentEpisodeNum: lobbyData.currentEpisodeNum + 1
-                    };
-                    updateLobbyState(updated);
-                    generateNextEpisode(newCast, { ...lobbyData, ...updated });
-                }
-            };
-
-            const renderMenu = () => (
-                <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-black text-white p-6">
-                    {/* Badge Stato Connessione */}
-                    <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 border border-white/10 text-xs">
-                        {onlineStatus === 'online' ? (
-                            <>
-                                <Wifi className="w-4 h-4 text-green-400" />
-                                <span className="text-green-300 font-semibold">Online (Firebase)</span>
-                            </>
-                        ) : onlineStatus === 'connecting' ? (
-                            <>
-                                <RefreshCw className="w-4 h-4 text-yellow-400 animate-spin" />
-                                <span className="text-yellow-300 font-semibold">Connessione...</span>
-                            </>
-                        ) : (
-                            <>
-                                <WifiOff className="w-4 h-4 text-red-400" />
-                                <span className="text-red-300 font-semibold">Offline / Locale</span>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="bg-white/10 p-8 rounded-3xl backdrop-blur-md shadow-2xl max-w-md w-full border border-white/20 text-center">
-                        <Crown className="w-16 h-16 mx-auto mb-4 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]" />
-                        <h1 className="text-4xl font-extrabold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500">REALITY SHOW</h1>
-                        <p className="text-gray-300 mb-6 text-sm">Crea o unisciti a una stanza multiplayer in tempo reale!</p>
-
-                        <div className="space-y-4 mb-6">
-                            <input 
-                                type="text" 
-                                placeholder="Il tuo Nickname..." 
-                                className="w-full bg-black/30 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                                value={nickname}
-                                onChange={(e) => setNickname(e.target.value)}
-                            />
-                            
-                            <div className="text-left">
-                                <label className="text-xs text-purple-300 font-bold ml-1 mb-1 block">Google Gemini API Key (Opzionale):</label>
-                                <input 
-                                    type="password" 
-                                    placeholder="Chiave API Gemini per racconti dinamici" 
-                                    className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm"
-                                    value={geminiApiKey}
-                                    onChange={(e) => {
-                                        setGeminiApiKey(e.target.value);
-                                        localStorage.setItem('geminiApiKey', e.target.value);
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 border-t border-white/10 pt-6">
-                            <button onClick={createLobby} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 py-3 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all">
-                                <Play className="w-5 h-5" /> Crea Nuova Stanza
-                            </button>
-                            
-                            <div className="flex gap-2">
-                                <input id="joinCode" type="text" placeholder="Codice Stanza" className="w-2/3 bg-black/30 border border-white/20 rounded-xl px-4 py-3 text-white text-center uppercase font-mono" />
-                                <button onClick={() => joinLobby(document.getElementById('joinCode').value)} className="w-1/3 bg-white/20 hover:bg-white/30 py-3 rounded-xl font-bold transition-all">
-                                    Unisciti
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            const renderLobbyRoom = () => {
-                if (!lobbyData) return null;
-                const isHost = user.uid === lobbyData.host;
-
-                return (
-                    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6">
-                        <div className="bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-2xl w-full border border-gray-700">
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">{lobbyData.name}</h2>
-                                    <p className="text-gray-400 mt-1">Codice Stanza da condividere: <span className="font-mono text-yellow-300 bg-black/60 px-3 py-1 rounded text-lg border border-yellow-500/30 font-bold">{lobbyData.id}</span></p>
-                                </div>
-                                <button onClick={leaveLobby} className="text-red-400 hover:text-red-300 flex items-center gap-1 bg-red-950/40 px-3 py-1.5 rounded-lg border border-red-800/40"><LogOut className="w-4 h-4"/> Esci</button>
-                            </div>
-
-                            <div className="mb-8">
-                                <h3 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2 flex items-center justify-between">
-                                    <span>Giocatori Connessi ({lobbyData.players.length})</span>
-                                    <span className="text-xs text-purple-400 font-normal">Sincronizzazione attiva</span>
-                                </h3>
-                                <div className="flex flex-wrap gap-3">
-                                    {lobbyData.players.map(p => (
-                                        <div key={p.id} className="bg-gray-700/60 px-4 py-2 rounded-full flex items-center gap-2 border border-gray-600 shadow">
-                                            {p.id === lobbyData.host && <Crown className="w-4 h-4 text-yellow-400"/>}
-                                            <span className="font-semibold">{p.name}</span>
-                                            {p.id === user.uid && <span className="text-xs text-purple-300 font-bold">(Tu)</span>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {isHost ? (
-                                <div className="bg-purple-900/30 p-6 rounded-2xl border border-purple-500/30 space-y-6">
-                                    <h3 className="text-xl font-bold text-purple-200 text-center">Configura il Cast del Reality</h3>
-                                    
-                                    <div className="flex bg-black/40 p-1.5 rounded-xl border border-purple-500/30">
-                                        <button 
-                                            onClick={() => setCastMode('random')}
-                                            className={`flex-1 py-2.5 rounded-lg font-bold transition-all text-sm flex items-center justify-center gap-2 ${castMode === 'random' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
-                                        >
-                                            🎲 Casuale
-                                        </button>
-                                        <button 
-                                            onClick={() => {
-                                                setCastMode('manual');
-                                                if (manualSelectedIds.length === 0) setManualSelectedIds(FULL_CAST.map(c => c.id));
-                                            }}
-                                            className={`flex-1 py-2.5 rounded-lg font-bold transition-all text-sm flex items-center justify-center gap-2 ${castMode === 'manual' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
-                                        >
-                                            🖐️ Manuale
-                                        </button>
-                                    </div>
-
-                                    {castMode === 'random' ? (
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-center text-sm">
-                                                <label className="font-semibold text-gray-300">Numero Concorrenti:</label>
-                                                <span className="font-mono text-xl font-bold text-purple-300 bg-purple-950/80 px-3 py-1 rounded-lg border border-purple-500/40">
-                                                    {customSize} / {FULL_CAST.length}
-                                                </span>
-                                            </div>
-                                            <input 
-                                                type="range" 
-                                                min="3" 
-                                                max={FULL_CAST.length} 
-                                                value={customSize} 
-                                                onChange={(e) => setCustomSize(Number(e.target.value))}
-                                                className="w-full accent-purple-500 cursor-pointer h-2 bg-gray-700 rounded-lg"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-2 bg-black/40 rounded-xl border border-gray-700">
-                                                {FULL_CAST.map(c => {
-                                                    const isSelected = manualSelectedIds.includes(c.id);
-                                                    return (
-                                                        <div 
-                                                            key={c.id}
-                                                            onClick={() => {
-                                                                setManualSelectedIds(prev => isSelected ? prev.filter(id => id !== c.id) : [...prev, c.id]);
-                                                            }}
-                                                            className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all border select-none ${isSelected ? 'bg-purple-900/70 border-purple-400 text-white' : 'bg-gray-800/40 border-gray-700/50 text-gray-400 opacity-60'}`}
-                                                        >
-                                                            <img src={c.img} alt={c.name} className="w-8 h-8 rounded-lg object-cover" />
-                                                            <span className="text-xs font-bold truncate">{c.name}</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <button 
-                                        onClick={startCustomGame} 
-                                        className="w-full py-4 rounded-xl font-extrabold text-lg shadow-xl flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white transition-all hover:scale-[1.02]"
-                                    >
-                                        <Play className="w-5 h-5 fill-current" /> Avvia Programma TV
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="bg-purple-950/40 p-6 rounded-2xl border border-purple-500/30 text-center animate-pulse">
-                                    <p className="text-purple-300 font-semibold text-lg">In attesa che l'Host avvii lo show...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            };
-
-            const renderGame = () => {
-                if (!lobbyData) return null;
-                const { gameState, currentEpisodeNum, cast, eliminated, currentEpisodeText, immuneId, nominees, publicVotes, scriptIndex, eliminationScript } = lobbyData;
-
-                return (
-                    <div className="flex flex-col h-screen bg-gray-900 text-white overflow-hidden">
-                        {/* Cast Bar Top */}
-                        <div className="bg-gray-800/90 backdrop-blur-md border-b border-gray-700 p-3 shadow-lg">
-                            <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 mb-2">
-                                <div className="flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-purple-400" />
-                                    <span className="font-bold text-sm text-purple-300">Concorrenti nella Casa ({cast.length})</span>
-                                </div>
-                                {eliminated?.length > 0 && (
-                                    <div className="text-xs text-red-400 font-semibold flex items-center gap-1">
-                                        <Skull className="w-4 h-4" /> Eliminati: {eliminated.length}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar max-w-6xl mx-auto">
-                                {cast.map(c => {
-                                    const isImmune = c.id === immuneId;
-                                    const isNominated = nominees && nominees.some(n => n.id === c.id);
-                                    return (
-                                        <div key={c.id} className="flex-shrink-0 flex flex-col items-center group relative">
-                                            <div className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 ${isImmune ? 'border-yellow-400 ring-2 ring-yellow-400/50' : isNominated ? 'border-red-500 ring-2 ring-red-500/80 shadow-[0_0_12px_rgba(239,68,68,0.9)]' : 'border-gray-600'}`}>
-                                                <img src={c.img} alt={c.name} className="w-full h-full object-cover" />
-                                                {isImmune && (
-                                                    <div className="absolute top-0 right-0 bg-yellow-500 p-0.5 rounded-bl z-10">
-                                                        <Crown className="w-3 h-3 text-black fill-black" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <span className="text-[10px] font-medium truncate max-w-[56px] text-center mt-1 text-gray-300">
-                                                {c.name}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Main Stage */}
-                        <div className="flex-1 flex flex-col h-full overflow-y-auto relative p-6 max-w-4xl mx-auto w-full">
-                            {gameState === 'episode_generation' && (
-                                <div className="flex flex-col items-center justify-center my-auto text-center">
-                                    <RefreshCw className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-                                    <h3 className="text-xl font-bold">Generazione Episodio {currentEpisodeNum}...</h3>
-                                </div>
-                            )}
-
-                            {gameState === 'episode_reading' && (
-                                <div className="space-y-6 my-auto">
-                                    <h2 className="text-2xl font-bold text-purple-400">Settimana {currentEpisodeNum} - Diretta TV</h2>
-                                    <div className="story-text bg-gray-800 p-5 rounded-2xl border border-gray-700 font-serif text-sm md:text-base text-gray-200" dangerouslySetInnerHTML={{__html: currentEpisodeText}}></div>
-                                    
-                                    <div className="bg-gray-800/80 p-4 rounded-xl border border-gray-700 flex flex-col items-center gap-3 mt-8">
-                                        <p className="text-gray-300 font-semibold text-sm">
-                                            Giocatori pronti: <span className="text-white font-bold">{lobbyData.readyForNomination?.length || 0} / {lobbyData.players.length}</span>
-                                        </p>
-                                        <button 
-                                            onClick={() => {
-                                                const currentReady = lobbyData.readyForNomination || [];
-                                                let newReady = currentReady.includes(user.uid)
-                                                    ? currentReady.filter(id => id !== user.uid)
-                                                    : [...currentReady, user.uid];
-
-                                                if (newReady.length >= lobbyData.players.length) {
-                                                    updateLobbyState({ gameState: 'house_nomination', readyForNomination: [] });
-                                                } else {
-                                                    updateLobbyState({ readyForNomination: newReady });
-                                                }
-                                            }} 
-                                            className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg flex justify-center items-center gap-2 ${
-                                                (lobbyData.readyForNomination || []).includes(user.uid)
-                                                ? 'bg-green-600 text-white'
-                                                : 'bg-gradient-to-r from-purple-600 to-indigo-600'
-                                            }`}
-                                        >
-                                            {(lobbyData.readyForNomination || []).includes(user.uid) ? 'Pronto (In attesa...)' : 'Sono Pronto per le Nomination!'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {gameState === 'house_nomination' && (
-                                <div className="space-y-6 my-auto text-center bg-gray-800 p-8 rounded-3xl border border-gray-700 shadow-2xl">
-                                    <Users className="w-16 h-16 text-purple-400 mx-auto" />
-                                    <h3 className="text-3xl font-extrabold text-purple-300">CONFESSIONALE SEGRETO</h3>
-                                    <p className="text-gray-300 max-w-xl mx-auto">I concorrenti stanno votando per mandare i propri compagni al televoto!</p>
-                                    
-                                    {user.uid === lobbyData.host ? (
-                                        <button onClick={processHouseNominations} className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-bold text-xl shadow-lg flex items-center justify-center gap-2">
-                                            Calcola Nomination della Casa <ArrowRight />
-                                        </button>
-                                    ) : (
-                                        <p className="text-purple-400 mt-4 animate-pulse">L'host sta raccogliendo i voti della casa...</p>
-                                    )}
-                                </div>
-                            )}
-
-                            {gameState === 'public_voting' && (
-                                <div className="space-y-6 my-auto">
-                                    <div className="text-center mb-6">
-                                        <h3 className="text-3xl font-extrabold text-red-500">TELEVOTO DEL PUBBLICO</h3>
-                                        <p className="text-gray-200 text-lg">Chi vuoi ELIMINARE dal programma?</p>
-                                    </div>
-
-                                    {publicVotes?.[user.uid] ? (
-                                        <div className="text-center bg-gray-800 p-8 rounded-2xl border border-gray-700">
-                                            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                                            <h4 className="text-2xl font-bold">Voto Registrato!</h4>
-                                            <p className="text-gray-400 mt-2">In attesa degli altri giocatori...</p>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-                                            {nominees.map(c => (
-                                                <div 
-                                                    key={c.id} 
-                                                    onClick={() => submitPublicVote(c.id)}
-                                                    className="cursor-pointer border-2 border-red-500 bg-gradient-to-b from-gray-800 to-red-950 flex flex-col items-center p-5 rounded-2xl text-center shadow-lg hover:scale-105 transition-all"
-                                                >
-                                                    <img src={c.img} alt={c.name} className="w-28 h-28 rounded-xl object-cover mb-3 border-2 border-red-500" />
-                                                    <span className="font-bold text-xl text-white">{c.name}</span>
-                                                    <button className="mt-4 w-full bg-red-600 text-white py-2 rounded-xl font-bold shadow">
-                                                        Vota x Eliminare
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {gameState === 'elimination_reveal' && (
-                                <div className="my-auto suspense-box bg-gray-800/90 p-8 rounded-3xl border-2 border-red-500/50 text-center space-y-6">
-                                    <h3 className="text-2xl font-bold text-red-400">VERDETTO DEL TELEVOTO</h3>
-                                    
-                                    <div className="min-h-[120px] flex flex-col justify-center items-center space-y-4">
-                                        {eliminationScript.slice(0, scriptIndex + 1).map((step, idx) => (
-                                            <p 
-                                                key={idx} 
-                                                className={`${idx === eliminationScript.length - 1 ? 'text-red-500 font-extrabold text-3xl animate-bounce' : 'text-lg text-gray-200'}`}
-                                                dangerouslySetInnerHTML={{__html: step.content}}
-                                            ></p>
-                                        ))}
-                                    </div>
-
-                                    {scriptIndex >= eliminationScript.length - 1 && user.uid === lobbyData.host && (
-                                        <button onClick={proceedToNextEpisode} className="mt-6 bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 rounded-full font-extrabold text-lg shadow-xl hover:scale-105 transition-all">
-                                            Prossimo Episodio
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                            {gameState === 'finished' && (
-                                <div className="text-center space-y-6 my-auto bg-gray-800 p-8 rounded-3xl border border-yellow-500 shadow-2xl">
-                                    <Crown className="w-20 h-20 text-yellow-400 mx-auto animate-bounce" />
-                                    <h2 className="text-4xl font-extrabold text-yellow-400">VINCITORE!</h2>
-                                    <p className="text-2xl text-white font-bold">{cast[0]?.name}</p>
-                                    <button onClick={leaveLobby} className="bg-purple-600 px-6 py-2.5 rounded-xl font-bold">Torna al Menu</button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            };
-
-            switch (view) {
-                case 'menu': return renderMenu();
-                case 'lobby': return renderLobbyRoom();
-                case 'game': return renderGame();
-                default: return renderMenu();
-            }
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<RealityShowGame />);
-    </script>
+            console.log("Firebase collegato con successo!");
+} catch (e) {
+console.warn("Firebase non configurato o in modalità locale/offline:", e);
+}
+
+const FULL_CAST = [
+{ id: "steven", name: "Steven", img: "https://i.pinimg.com/736x/70/98/cf/7098cf34406ae96dde6c8cf11211ff68.jpg" },
+{ id: "perla", name: "Perla", img: "https://i.pinimg.com/736x/ef/86/0e/ef860ed3cfb2f8eb7f1f14efdb0c0135.jpg" },
+{ id: "garnet", name: "Garnet", img: "https://i.pinimg.com/1200x/df/77/0f/df770ffb5866a4773afcd2f05d6fcd60.jpg" },
+{ id: "ametista", name: "Ametista", img: "https://i.pinimg.com/736x/09/0e/63/090e632f37b989073cb1c675ab0e4d58.jpg" },
+{ id: "peridot", name: "Peridot", img: "https://i.pinimg.com/736x/b5/30/24/b53024865467b768b22c5410f2b3f5e5.jpg" },
+{ id: "lapis", name: "Lapis", img: "https://i.pinimg.com/736x/26/1e/12/261e12c44243b064de61e52c735d7306.jpg" },
+{ id: "diamante_blu", name: "Diamante Blu", img: "https://i.pinimg.com/736x/fe/e6/fd/fee6fddff9d940b3410079f7dd9b19cd.jpg" },
+{ id: "diamante_giallo", name: "Diamante Giallo", img: "https://i.pinimg.com/736x/2a/97/ca/2a97cac3561d4425acaf6acc5b010024.jpg" },
+{ id: "diamante_bianco", name: "Diamante Bianco", img: "https://i.pinimg.com/736x/f8/57/5f/f8575f776adac7111faebf0e6d48bb95.jpg" },
+{ id: "bismuth", name: "Bismuth", img: "https://i.pinimg.com/736x/15/43/83/15438339f9384326e28d67629f75288d.jpg" },
+{ id: "lars", name: "Lars", img: "https://i.pinimg.com/736x/b3/d7/b4/b3d7b42c01d5f4f8de858fe3758c9576.jpg" },
+{ id: "sadie", name: "Sadie", img: "https://i.pinimg.com/736x/2c/65/ef/2c65eff8b1ed4af63a259590294ef258.jpg" },
+{ id: "padparadcha", name: "Padparadcha", img: "https://i.pinimg.com/736x/6e/87/c6/6e87c6a6f081eb77090f072e91b00eb3.jpg" },
+{ id: "gwen", name: "Gwen", img: "https://i.pinimg.com/736x/57/9f/ed/579fedb8439e0bf4ccb5958a5934c955.jpg" },
+{ id: "cody", name: "Cody", img: "https://i.pinimg.com/736x/ca/09/fd/ca09fdfc85b3f013470e2faf8706e2ae.jpg" },
+{ id: "zoey", name: "Zoey", img: "https://i.pinimg.com/1200x/8c/a8/74/8ca8748b682e1c67179643c68456d404.jpg" },
+{ id: "courtney", name: "Courtney", img: "https://i.pinimg.com/1200x/0a/c5/52/0ac5521dddf64ab0b5d08e6e36a2c10b.jpg" },
+{ id: "heather", name: "Heather", img: "https://i.pinimg.com/1200x/2b/f1/5f/2bf15f9703ba3b796fbda16b4c564df0.jpg" },
+{ id: "lindsay", name: "Lindsay", img: "https://i.pinimg.com/1200x/8a/bc/54/8abc541fa8bb935f267310c393f65c8f.jpg" },
+{ id: "jake", name: "Jake", img: "https://i.pinimg.com/736x/ea/95/44/ea9544aef82c1dd05e57f50c7e798473.jpg" },
+{ id: "tom", name: "Tom", img: "https://i.pinimg.com/736x/16/4a/80/164a80bd3bd4b74b62bba156328ebc8e.jpg" },
+{ id: "ellie", name: "Ellie", img: "https://i.pinimg.com/736x/b6/69/e0/b669e0deef42654af6bca538b2f5b15e.jpg" },
+{ id: "gabby", name: "Gabby", img: "https://i.pinimg.com/736x/e8/43/25/e84325bb0d347d41acd195d10ef7ea65.jpg" },
+{ id: "ashley", name: "Ashley", img: "https://i.pinimg.com/736x/f4/12/54/f41254f60d4c222cf59e1abbb4b0ae99.jpg" },
+{ id: "fiore", name: "Fiore", img: "https://i.pinimg.com/736x/a9/1b/1d/a91b1d88a7fcf431999295f7f9396ed8.jpg" },
+{ id: "alec", name: "Alec", img: "https://i.pinimg.com/736x/0c/8e/9d/0c8e9d4a3f5b30683fe8dc124a1486cf.jpg" },
+{ id: "hunter", name: "Hunter", img: "https://i.pinimg.com/736x/33/f8/5d/33f85d364457e476ab1666ddadaaff02.jpg" },
+{ id: "ally", name: "Ally", img: "https://i.pinimg.com/736x/d2/2e/c0/d22ec0aa8d0e2c555a5b10dee09e6bb6.jpg" },
+{ id: "tess", name: "Tess", img: "https://i.pinimg.com/736x/60/cd/d5/60cdd50951b48eb087460196f22ba3ab.jpg" },
+{ id: "riya", name: "Riya", img: "https://i.pinimg.com/736x/b1/4b/1d/b14b1d4d9b6a1b857caa55b0bfd47446.jpg" },
+{ id: "yul", name: "Yul", img: "https://i.pinimg.com/736x/f6/ca/f6/f6caf6b4ccc95c23552f60e3e6c6838e.jpg" },
+{ id: "grett", name: "Grett", img: "https://i.pinimg.com/736x/db/70/d7/db70d70ef5e4aa7b78adf2504d7149ba.jpg" },
+{ id: "aiden", name: "Aiden", img: "https://i.pinimg.com/736x/2f/54/f2/2f54f21900b19a15974222838eb7a6c5.jpg" },
+{ id: "rosa_maria", name: "Rosa Maria", img: "https://i.pinimg.com/736x/af/5f/87/af5f87754223b2327409e08c5c5ff8f1.jpg" },
+{ id: "anastasia", name: "Anastasia", img: "https://i.pinimg.com/736x/83/4a/d1/834ad1ebd81b8275c92f833997571741.jpg" },
+{ id: "ivy", name: "Ivy", img: "https://i.pinimg.com/736x/32/b2/55/32b2554ef522071ebc84f5289bd4a9cd.jpg" },
+{ id: "tristan", name: "Tristan", img: "https://i.pinimg.com/736x/79/af/6a/79af6a0030b12fc9c98711126e0c967b.jpg" },
+{ id: "spencer", name: "Spencer", img: "https://i.pinimg.com/736x/1a/a6/94/1aa69432bc0438f9a30f595ff4693afa.jpg" },
+{ id: "diego", name: "Diego", img: "https://i.pinimg.com/736x/88/7e/be/887ebe910927b30d7b81fa566392dc53.jpg" },
+{ id: "logan", name: "Logan", img: "https://i.pinimg.com/736x/88/a9/99/88a9999e563000ee0aa9a6a13ca7b57d.jpg" },
+{ id: "billy", name: "Billy", img: "https://i.pinimg.com/736x/26/8b/63/268b63aba0545d8899282501832a5efa.jpg" },
+{ id: "mandy", name: "Mandy", img: "https://i.pinimg.com/736x/9f/fc/09/9ffc0904acd73935296ce3dce83b66d2.jpg" },
+{ id: "tenebra", name: "Tenebra", img: "https://i.pinimg.com/1200x/d6/d7/83/d6d7837e0981c4cc2510d380ecdf519e.jpg" },
+{ id: "nicole", name: "Nicole", img: "https://i.pinimg.com/736x/9d/b6/47/9db64768696a0ccd696eb7f3a82fb913.jpg" },
+{ id: "gumball", name: "Gumball", img: "https://i.pinimg.com/736x/6e/76/94/6e7694154cc16d6f15b14dc83cbceaf9.jpg" },
+{ id: "darwin", name: "Darwin", img: "https://i.pinimg.com/1200x/5a/cf/9c/5acf9c886678411963046b04051e610e.jpg" },
+{ id: "anais", name: "Anais", img: "https://i.pinimg.com/736x/0a/8b/ab/0a8bab3e6151e894a2d9b96749d63e61.jpg" },
+{ id: "richard", name: "Richard", img: "https://i.pinimg.com/736x/3f/57/61/3f5761972402157f6969c91edc160322.jpg" },
+{ id: "nonna_jojo", name: "Nonna Jojo", img: "https://i.pinimg.com/736x/8d/c0/9a/8dc09a77959594c1eaa7b8a580d7b684.jpg" },
+{ id: "penny", name: "Penny", img: "https://i.pinimg.com/736x/5a/e2/56/5ae256da00c76f469883e15c296c6fdb.jpg" },
+{ id: "alan", name: "Alan", img: "https://i.pinimg.com/736x/fd/8f/73/fd8f739fc5e07911fff3d04ab5184a92.jpg" },
+{ id: "carlos", name: "Carlos", img: "https://i.pinimg.com/736x/7e/81/e4/7e81e4da144c393e90fe41c8d3ca109c.jpg" },
+{ id: "leon", name: "Leon", img: "https://i.pinimg.com/736x/db/ef/fc/dbeffc6e915a929f7dbe908390f5af42.jpg" },
+{ id: "sonic", name: "Sonic", img: "https://i.pinimg.com/736x/65/60/9e/65609e1a4272a562399f8c43ac1b1b18.jpg" },
+{ id: "amy", name: "Amy", img: "https://i.pinimg.com/1200x/17/e8/f1/17e8f14d01b7b69dc4099740ef5fb4dd.jpg" },
+{ id: "dr_eggman", name: "Dr Eggman", img: "https://i.pinimg.com/736x/ca/6a/ec/ca6aec757d82fbd5498fc2f5322ffc2c.jpg" },
+{ id: "bowser", name: "Bowser", img: "https://i.pinimg.com/1200x/cf/3f/ec/cf3fec1f6b9334e0255065f150fa97a9.jpg" },
+{ id: "yoshi", name: "Yoshi", img: "https://i.pinimg.com/736x/44/39/d9/4439d934fef155334249c6f1c1465925.jpg" },
+{ id: "rosalinda", name: "Rosalinda", img: "https://i.pinimg.com/736x/da/87/05/da87056e17f0b24989898b059a1b0560.jpg" },
+{ id: "daisy", name: "Daisy", img: "https://i.pinimg.com/1200x/ea/970d/ea970dafc3efe6c77a92d12b890ffb29.jpg" },
+{ id: "peach", name: "Peach", img: "https://i.pinimg.com/736x/98/65/39/986539a9ccd1408d51eb061df724377f.jpg" },
+{ id: "pauline", name: "Pauline", img: "https://i.pinimg.com/736x/86/83/ee/8683ee7c89735311e61addebf517a3de.jpg" },
+{ id: "donkey_kong", name: "Donkey Kong", img: "https://i.pinimg.com/736x/7a/76/a9/7a76a963dad38a1b913bdec0832d6be9.jpg" },
+{ id: "link", name: "Link", img: "https://i.pinimg.com/1200x/ab/9f/a3/ab9fa361c81e3f995a1001e8a18d6332.jpg" },
+{ id: "zelda", name: "Zelda", img: "https://i.pinimg.com/736x/d8/d1/5e/d8d15e344ca34ea6c93061dbd78eb078.jpg" },
+{ id: "robin_go", name: "Robin GO", img: "https://i.pinimg.com/736x/43/c5/70/43c570d631fab987199f0b78e1cc36c8.jpg" },
+{ id: "robin_tt", name: "Robin TT", img: "https://i.pinimg.com/736x/18/a0/83/18a083d5d5d31ab219743bbc55617bfd.jpg" },
+{ id: "nightwing", name: "Nightwing", img: "https://i.pinimg.com/736x/e0/80/47/e080479425ff567799a0a994b8bdb89a.jpg" },
+{ id: "superboy", name: "Superboy", img: "https://i.pinimg.com/1200x/34/20/a3/3420a34c3f0a287a8c06d435fcb577b7.jpg" },
+{ id: "clark", name: "Clark", img: "https://i.pinimg.com/1200x/c7/9f/bf/c79fbf119347d7b33ce95b05cd0309c2.jpg" },
+{ id: "slade", name: "Slade", img: "https://i.pinimg.com/1200x/ed/cc/2f/edcc2f4600f2becd32d85c6ae1c60508.jpg" },
+{ id: "corvina_go", name: "Corvina GO", img: "https://i.pinimg.com/736x/92/91/db/9291dbef281abc1f05e709c94fe17eba.jpg" },
+{ id: "corvina_tt", name: "Corvina TT", img: "https://i.pinimg.com/736x/7e/83/fd/7e83fd54a799886c1bda33e710cac145.jpg" },
+{ id: "beastboy_go", name: "BeastBoy GO", img: "https://i.pinimg.com/736x/38/ad/93/38ad93be009ec46dbf232a3f9e4543f3.jpg" },
+{ id: "beastboy_tt", name: "BeastBoy TT", img: "https://i.pinimg.com/736x/18/0d/91/180d913d35ba81210a2062ff1a9b5fed.jpg" },
+{ id: "nonnina", name: "Nonnina", img: "https://i.pinimg.com/736x/78/c1/46/78c14693e82239e78f6e0b662d1dcba9.jpg" },
+{ id: "neera", name: "Neera", img: "https://i.pinimg.com/1200x/64/b4/83/64b48342327c37139f0071eb292a55c1.jpg" },
+{ id: "shira", name: "Shira", img: "https://i.pinimg.com/736x/b1/7d/41/b17d41f4975bd3a28882465b65f7fab1.jpg" },
+{ id: "gia", name: "Gia", img: "https://i.pinimg.com/736x/10/00/66/100066a1e6e6cd217a0ca6acf9cb3783.jpg" },
+{ id: "alex", name: "Alex", img: "https://i.pinimg.com/736x/6c/b4/d3/6cb4d3a757239c134e5a373764debc1a.jpg" },
+{ id: "martin", name: "Martin", img: "https://i.pinimg.com/1200x/6c/e3/55/6ce35566d1431f26ba9d29e65fc2b7f6.jpg" },
+{ id: "mortino", name: "Mortino", img: "https://i.pinimg.com/736x/04/75/d2/0475d21f792187db47506b4b14ad33a6.jpg" },
+{ id: "re_julien", name: "Re Julien", img: "https://i.pinimg.com/736x/5b/26/14/5b261453f19c9badc3fc053a200eb4b2.jpg" },
+{ id: "spongebob", name: "Spongebob", img: "https://i.pinimg.com/736x/84/d6/93/84d6932dd04fbed707e5fb5d5129ab04.jpg" },
+{ id: "patrick", name: "Patrick", img: "https://i.pinimg.com/736x/a7/ba/c3/a7bac37780a4b2edd17192d863fb31a2.jpg" },
+{ id: "squiddi", name: "Squiddi", img: "https://i.pinimg.com/736x/1f/24/5f/1f245fbad2cc659efb461b40041f0343.jpg" },
+{ id: "plankton", name: "Plankton", img: "https://i.pinimg.com/736x/fa/971b/fa971b06d58f0195fab57a907b42c5df.jpg" },
+{ id: "mr_krab", name: "Mr Krab", img: "https://i.pinimg.com/736x/1b/2c/77/1b2c77099fb8c4484f6a2b3f2b1e735c.jpg" },
+{ id: "bugs_bunny", name: "Bugs Bunny", img: "https://i.pinimg.com/1200x/4a/38/8c/4a388c42e7f471fc4b6f37c2666fa104.jpg" },
+{ id: "legoshi", name: "Legoshi", img: "https://i.pinimg.com/736x/56/9e/06/569e0611727318e83862336b65380373.jpg" },
+{ id: "max", name: "Max", img: "https://i.pinimg.com/1200x/c6/7c/3d/c67c3db692d3eafbfd9467ca70be03dd.jpg" },
+{ id: "lola_bunny_fika", name: "Lola Bunny (Versione Fika)", img: "https://i.pinimg.com/1200x/a3/12/bc/a312bcc1fcd878f7e156ec96b8f3bbd8.jpg" },
+{ id: "lola_bunny_stupida", name: "Lola Bunny (Stupida)", img: "https://i.pinimg.com/736x/e2/52/1c/e2521c9957028e8687fbb4bd2151ad12.jpg" },
+{ id: "daffy_duck", name: "Daffy Duck", img: "https://i.pinimg.com/736x/c2/ed/eb/c2edebff1561208591dedecc8ba5476e.jpg" },
+{ id: "spirit", name: "Spirit", img: "https://i.pinimg.com/736x/76/2b/f1/762bf1a61ef492489f2450a195e119c4.jpg" },
+{ id: "luca", name: "Luca", img: "https://i.pinimg.com/1200x/d1/48/00/d14800d8e964b9ac08e9e24ca1cd9209.jpg" },
+{ id: "marinette", name: "Marinette", img: "https://i.pinimg.com/736x/b8/74/55/b87455575cd069609007a639c9490293.jpg" },
+{ id: "adrien", name: "Adrien", img: "https://i.pinimg.com/1200x/1b/98/4e/1b984eac3695c884f1438265ff3fe548.jpg" },
+{ id: "alya", name: "Alya", img: "https://i.pinimg.com/736x/e1/79/1a/e1791a201115468ef7bc7faa4ef33b74.jpg" },
+{ id: "cerise", name: "Cerise", img: "https://i.pinimg.com/736x/04/fc/ea/04fcea6d8cd2ebc7b62a85dbcfd5b93b.jpg" },
+{ id: "nathalie", name: "Nathalie", img: "https://i.pinimg.com/736x/f2/a8/93/f2a89374f8fcfee7cd9d9b550a1caf5c.jpg" },
+{ id: "luka", name: "Luka", img: "https://i.pinimg.com/736x/1c/9a/06/1c9a06e55c24422ec3026bf60f4e78af.jpg" },
+{ id: "kagami", name: "Kagami", img: "https://i.pinimg.com/1200x/a0/89/5f/a0895fb19a616e7ed3f6b9a4c9e4c033.jpg" },
+{ id: "ferocia", name: "Ferocia", img: "https://i.pinimg.com/736x/9c/31/15/9c31155d6aa8c5ee9b807c9d022d0fcb.jpg" },
+{ id: "yzma", name: "Yzma", img: "https://i.pinimg.com/736x/74/4a/5e/744a5e33c09419f27d951f1851ddcff3.jpg" },
+{ id: "timmy", name: "Timmy", img: "https://i.pinimg.com/736x/29/7d/9b/297d9b0fb4cbb4667a8082e32e5b8482.jpg" },
+            { id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e7/46/82e7461e1f194725e93e786a5ef94c31.jpg" },
+            { id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e746/82e7461e1f194725e93e786a5ef94c31.jpg" },
+{ id: "wanda", name: "Wanda", img: "https://i.pinimg.com/736x/99/87/b7/9987b79d555daf6e60f2c501064ac38f.jpg" },
+{ id: "vicky", name: "Vicky", img: "https://i.pinimg.com/736x/ba/3d/43/ba3d439aeb0206dffad3edc934a07e00.jpg" },
+{ id: "phineas", name: "Phineas", img: "https://i.pinimg.com/736x/12/15/26/121526111b6f2e460b21722b25269642.jpg" },
+{ id: "perry", name: "Perry", img: "https://i.pinimg.com/736x/4b/7a/56/4b7a56c62348f1f8a8a0b05a976c74b5.jpg" },
+{ id: "ferb", name: "Ferb", img: "https://i.pinimg.com/736x/e7/f9/c6/e7f9c62ba36b039da327938084a6230d.jpg" },
+{ id: "vanessa", name: "Vanessa", img: "https://i.pinimg.com/736x/69/71/fc/6971fc512bd7d321f709c11adecd1a3f.jpg" },
+{ id: "isabella", name: "Isabella", img: "https://i.pinimg.com/1200x/8f/b6/53/8fb6531754417925d60f7ba9276d824d.jpg" },
+{ id: "dr_doofenshmirtz", name: "Dr Doofenshmirtz", img: "https://i.pinimg.com/1200x/c7/8b/74/c78b74d50baef1a8bf4948c797a23c8a.jpg" },
+{ id: "finn", name: "Finn", img: "https://i.pinimg.com/736x/7e/0b/c9/7e0bc9826a7652264f32a44bc8a40ede.jpg" },
+{ id: "jake_adventure_time", name: "Jake", img: "https://i.pinimg.com/736x/45/1e/d6/451ed60c7654877f2636b8ec4711e2fc.jpg" },
+{ id: "gommarosa", name: "Gommarosa", img: "https://i.pinimg.com/736x/50/b5/33/50b533d6bd63cee56e48c15e47339fe3.jpg" },
+{ id: "marceline", name: "Marceline", img: "https://i.pinimg.com/736x/bb/93/5e/bb935e39f2d66248b6e4178227bdb233.jpg" },
+{ id: "re_ghiaccio", name: "Re Ghiaccio", img: "https://i.pinimg.com/736x/63/11/d2/6311d2bddf8b2672df70a957bea7a93d.jpg" },
+{ id: "gunter", name: "Gunter", img: "https://i.pinimg.com/736x/e0/64/ee/e064ee06b7760b25f506c4e30a634c1c.jpg" },
+{ id: "bmo", name: "BMO", img: "https://i.pinimg.com/736x/15/d1/e4/15d1e4cbe55df4547f635607625f93ec.jpg" },
+{ id: "pucca", name: "Pucca", img: "https://i.pinimg.com/736x/57/12/b2/5712b2feb50f0fc86988b9fff96dc5.jpg" }
+];
+
+const highlightNamesInText = (rawText, aliveCast) => {
+let processedText = rawText;
+const sortedCast = [...aliveCast].sort((a, b) => b.name.length - a.name.length);
+
+sortedCast.forEach(c => {
+const regex = new RegExp(`\\b${c.name}\\b`, 'gi');
+
+const replacement = `
+                   <span class="inline-flex flex-col items-center justify-center mx-1.5 align-middle group cursor-pointer translate-y-1">
+                       <img src="${c.img}" alt="${c.name}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/4c1d95/ffffff?text=${c.name}';" class="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover border border-purple-500/50 shadow-sm group-hover:scale-110 group-hover:border-purple-400 transition-all duration-300" />
+                       <span class="text-[9px] md:text-[10px] font-extrabold text-gray-300 mt-0.5 leading-none uppercase tracking-tight group-hover:text-white transition-colors">${c.name}</span>
+                   </span>
+               `.trim().replace(/\n\s+/g, ' '); 
+
+processedText = processedText.replace(regex, replacement);
+});
+
+processedText = processedText.replace(/<b>\s*(<span[^>]+>.*?<\/span>)\s*<\/b>/gi, '$1');
+
+return processedText;
+};
+
+const generateEpisodeStory = async (aliveCast, immuneChar, episodeNum, pastEpisodes = [], apiKey = "") => {
+const aliveNames = aliveCast.map(c => c.name).join(', ');
+
+const historyContext = pastEpisodes.length > 0 
+? pastEpisodes.slice(-3).map((ep, i) => `Riassunto Episodio precedente:\n${ep.replace(/<[^>]*>?/gm, '')}`).join("\n\n")
+: "Questa è la primissima puntata. I concorrenti varcano la Porta Rossa del Grande Fratello. Nessuno si conosce bene, ma le prime impressioni sono fondamentali.";
+
+let systemPrompt = `Sei l'autore e la voce onnipresente del "Grande Fratello". Osservi 24 ore su 24 i concorrenti rinchiusi nella Casa più spiata d'Italia.
+           Cast dei concorrenti attualmente in gara: ${aliveNames}.
+           Concorrente che è immune dalle nomination o preferito dal pubblico/GF in questo episodio: ${immuneChar.name}.
+           
+           STORICO DELLA TRAMA (MOLTO IMPORTANTE):
+           ${historyContext}
+           
+           IL TUO COMPITO: Scrivi il riassunto della settimana nella Casa (Settimana ${episodeNum}).
+           
+           REGOLE TASSATIVE:
+           1. CONTINUITÀ: Basati sullo "Storico della trama". Le dinamiche (amori, liti, alleanze) NON devono essere casuali, ma una conseguenza logica del passato! Usa il "Confessionale" per rivelare i veri pensieri dei concorrenti.
+           2. INTERAZIONI: Scegli 3 o 4 personaggi dal cast e crea pettegolezzi, tradimenti, nuovi amori o litigi furibondi tra di loro.
+           3. IMMUNITÀ: Menziona brevemente come o perché ${immuneChar.name} ha ottenuto l'immunità (es. preferito della casa, scelta del GF, ecc.).
+           4. FORMATO: Restituisci SOLO IL CODICE HTML del racconto (usa solo i tag <p> e <i> per i pensieri/confessionali). 
+           5. DIVIETO ASSOLUTO: EVITA categoricamente di usare il tag <b> sui nomi propri dei personaggi. NON inserire i tag \`\`\`html.`;
+
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+let finalStoryText = "";
+
+try {
+if (!apiKey || apiKey.trim() === "") throw new Error("No API key provided. Using Fallback.");
+const response = await fetch(apiUrl, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+contents: [{ parts: [{ text: systemPrompt }] }],
+systemInstruction: { parts: [{ text: "Sei la voce del Grande Fratello. Scrivi solo l'HTML interno del racconto. Descrivi intrighi, confessionali, amori e liti nella Casa. Mantieni coerenza narrativa." }] },
+generationConfig: { temperature: 0.8 }
+})
+});
+
+if (!response.ok) throw new Error("API Error");
+
+const result = await response.json();
+if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+let text = result.candidates[0].content.parts[0].text;
+text = text.replace(/```html/gi, '').replace(/```/g, '');
+finalStoryText = text;
+}
+} catch (e) {
+console.log("Generazione racconto predefinita (offline) in corso...", e.message);
+const shuffledCast = [...aliveCast].sort(() => 0.5 - Math.random());
+const p1 = shuffledCast[0] ? shuffledCast[0].name : immuneChar.name;
+const p2 = shuffledCast[1] ? shuffledCast[1].name : p1;
+
+if (episodeNum === 1) {
+finalStoryText = `<p><b>ATTENZIONE: Stai giocando senza API Key funzionante! Le storie saranno ripetitive.</b></p><p>La Porta Rossa si spalanca e i concorrenti entrano ufficialmente nella Casa del Grande Fratello!</p>
+                   <p>Non appena varcata la soglia, la tensione era già alle stelle tra ${p1} e ${p2}, che si sono subito scontrati ferocemente per accaparrarsi il letto migliore.</p>
+                   <p>A sbaragliare tutti e a guadagnarsi l'IMMUNITÀ per questa settimana è stato/a ${immuneChar.name}!</p>`;
+} else {
+finalStoryText = `<p><b>ATTENZIONE: Gioco offline. Nessuna continuità generata.</b></p><p>La tensione nella Casa è altissima!</p>
+                   <p>Il vero terremoto della settimana è stato lo scontro in Confessionale tra ${p1} e ${p2}. La casa è spaccata, i coltelli sono affilati.</p>
+                   <p>Nel frattempo, ${immuneChar.name} ha saputo giocare d'astuzia, aggiudicandosi l'Immunità per la prossima nomination!</p>`;
+}
+}
+
+return highlightNamesInText(finalStoryText, aliveCast);
+};
+
+function RealityShowGame() {
+const { useState, useEffect } = React;
+
+const [user, setUser] = useState({ uid: 'user-' + Math.random().toString(36).substring(2, 7) });
+const [nickname, setNickname] = useState('Giocatore');
+const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('geminiApiKey') || 'AIzaSyBGds2K-vi7O5Whcv1wnpuZrPqwxas-rrs');
+const [lobbyId, setLobbyId] = useState(null);
+const [lobbyData, setLobbyData] = useState(null);
+const [view, setView] = useState('menu');
+
+const [castMode, setCastMode] = useState('random'); 
+const [customSize, setCustomSize] = useState(12);
+const [manualSelectedIds, setManualSelectedIds] = useState([]);
+
+useEffect(() => {
+if (isFirebaseAvailable && auth) {
+auth.signInAnonymously().catch(console.error);
+const unsub = auth.onAuthStateChanged(u => {
+if (u) setUser(u);
+});
+return () => unsub();
+}
+}, []);
+
+// === FUNZIONE AGGIUNTA PER L'ONLINE ===
+const updateLobbyState = async (updates) => {
+if (db && lobbyId) {
+try {
+await db.collection('lobbies').doc(lobbyId).update(updates);
+} catch(e) {
+console.error("Errore aggiornamento Firebase:", e);
+}
+} else {
+// Fallback se si gioca offline
+setLobbyData(prev => ({ ...prev, ...updates }));
+}
+};
+
+// === LISTENER FIREBASE IN TEMPO REALE ===
+useEffect(() => {
+if (!isFirebaseAvailable || !db || !lobbyId) return;
+
+const unsubscribe = db.collection('lobbies').doc(lobbyId).onSnapshot((doc) => {
+if (doc.exists) {
+const data = doc.data();
+setLobbyData(data);
+
+// Sposta tutti i giocatori nella schermata di gioco quando l'host avvia
+if (data.status === 'playing' && view !== 'game') {
+setView('game');
+}
+}
+});
+
+return () => unsubscribe();
+}, [lobbyId, view]);
+
+const createLobby = async () => {
+if (!nickname.trim()) return alert("Inserisci un nickname!");
+const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+const newLobby = {
+id: newId,
+name: `Lobby di ${nickname}`,
+host: user.uid,
+status: 'waiting',
+players: [{ id: user.uid, name: nickname }],
+cast: [],
+eliminated: [],
+pastEpisodes: [],
+gameState: 'lobby',
+currentEpisodeNum: 1,
+currentEpisodeText: '',
+immuneId: null,
+nominationVotes: {},
+nominees: [],
+publicVotes: {},
+eliminationScript: [],
+scriptIndex: 0,
+readyForNomination: []
+};
+
+if (db) {
+await db.collection('lobbies').doc(newId).set(newLobby);
+} else {
+setLobbyData(newLobby);
+}
+
+setLobbyId(newId);
+setView('lobby');
+};
+
+const joinLobby = async (code) => {
+if (!nickname.trim()) return alert("Inserisci un nickname!");
+if (!code) return;
+
+const codeUpper = code.toUpperCase();
+
+if (db) {
+const docRef = db.collection('lobbies').doc(codeUpper);
+const docSnap = await docRef.get();
+
+if (docSnap.exists) {
+const data = docSnap.data();
+const isAlreadyIn = data.players.some(p => p.id === user.uid);
+if (!isAlreadyIn) {
+await docRef.update({
+players: firebase.firestore.FieldValue.arrayUnion({ id: user.uid, name: nickname })
+});
+}
+setLobbyId(codeUpper);
+setView('lobby');
+} else {
+alert("Lobby non trovata o codice errato!");
+}
+} else {
+alert("Firebase offline. Impossibile unirsi.");
+}
+};
+
+const leaveLobby = () => {
+setLobbyId(null);
+setLobbyData(null);
+setView('menu');
+};
+
+const startCustomGame = async () => {
+if (user.uid !== lobbyData.host) return alert("Solo l'Host può iniziare il gioco!");
+
+let selectedCast = [];
+if (castMode === 'random') {
+const count = Math.min(Math.max(3, Number(customSize) || 12), FULL_CAST.length);
+const shuffled = [...FULL_CAST].sort(() => 0.5 - Math.random());
+selectedCast = shuffled.slice(0, count);
+} else {
+selectedCast = FULL_CAST.filter(c => manualSelectedIds.includes(c.id));
+if (selectedCast.length < 3) {
+alert("Seleziona almeno 3 concorrenti per iniziare il programma!");
+return;
+}
+}
+
+const updated = {
+status: 'playing',
+cast: selectedCast,
+gameState: 'episode_generation',
+currentEpisodeNum: 1
+};
+
+await updateLobbyState(updated);
+generateNextEpisode(selectedCast, { ...lobbyData, ...updated });
+};
+
+const generateNextEpisode = async (currentCast, currentLobby) => {
+const immuneChar = currentCast[Math.floor(Math.random() * currentCast.length)];
+
+const text = await generateEpisodeStory(currentCast, immuneChar, currentLobby.currentEpisodeNum, currentLobby.pastEpisodes, geminiApiKey);
+
+await updateLobbyState({
+gameState: 'episode_reading',
+currentEpisodeText: text,
+pastEpisodes: [...(currentLobby.pastEpisodes || []), text], 
+immuneId: immuneChar.id,
+nominationVotes: {},
+nominees: [],
+publicVotes: {},
+eliminationScript: [],
+scriptIndex: 0,
+readyForNomination: []
+});
+};
+
+const processHouseNominations = () => {
+if (user.uid !== lobbyData.host) return; // Solo l'host calcola le nomination
+
+const currentCast = lobbyData.cast;
+const nonImmuneCast = currentCast.filter(c => c.id !== lobbyData.immuneId);
+const nominationTallies = {};
+const secretVotesDetails = [];
+
+currentCast.forEach(c => nominationTallies[c.id] = 0);
+
+currentCast.forEach(voterChar => {
+let validTargets = nonImmuneCast.filter(t => t.id !== voterChar.id);
+if (validTargets.length === 0) validTargets = nonImmuneCast;
+if (validTargets.length > 0) {
+const randomTarget = validTargets[Math.floor(Math.random() * validTargets.length)];
+nominationTallies[randomTarget.id] = (nominationTallies[randomTarget.id] || 0) + 1;
+secretVotesDetails.push({ voter: voterChar.name, target: randomTarget.name });
+}
+});
+
+const sortedCast = [...nonImmuneCast].sort((a, b) => nominationTallies[b.id] - nominationTallies[a.id]);
+
+const numNominees = Math.min(3, sortedCast.length);
+const selectedNominees = sortedCast.slice(0, numNominees);
+
+updateLobbyState({
+nominees: selectedNominees,
+nominationTallies: nominationTallies,
+gameState: 'public_voting'
+});
+};
+
+const submitPublicVote = async (charId) => {
+const newPublicVotes = { ...lobbyData.publicVotes, [user.uid]: charId };
+await updateLobbyState({ publicVotes: newPublicVotes });
+
+// Se l'utente è l'host, processa la chiusura automatica del televoto (logica originale mantenuta)
+if (user.uid === lobbyData.host) {
+closeTelevoto(newPublicVotes);
+}
+};
+
+const closeTelevoto = (publicVotesObj) => {
+const voteCounts = {};
+lobbyData.nominees.forEach(c => voteCounts[c.id] = 0);
+
+Object.values(publicVotesObj).forEach(votedId => {
+if (voteCounts[votedId] !== undefined) {
+voteCounts[votedId]++;
+}
+});
+
+const sortedNominees = [...lobbyData.nominees].sort((a, b) => voteCounts[b.id] - voteCounts[a.id]);
+const maxVotes = voteCounts[sortedNominees[0].id];
+const tiedForFirst = sortedNominees.filter(c => voteCounts[c.id] === maxVotes);
+const trulySaved = sortedNominees.filter(c => voteCounts[c.id] < maxVotes);
+
+const isTie = tiedForFirst.length > 1;
+
+let eliminatedChar;
+if (isTie) {
+eliminatedChar = tiedForFirst[Math.floor(Math.random() * tiedForFirst.length)];
+} else {
+eliminatedChar = tiedForFirst[0];
+}
+
+const script = [
+{ type: 'text', content: "🔔 Il televoto del pubblico è UFFICIALMENTE CHIUSO!", sound: null },
+{ type: 'text', content: `I concorrenti a rischio sono: <b>${lobbyData.nominees.map(c => c.name).join(', ')}</b>.`, sound: 'heartbeat' },
+{ type: 'text', content: "Ho la busta con il verdetto definitivo...", sound: 'heartbeat' }
+];
+
+if (isTie) {
+if (trulySaved.length > 0) {
+const savedNames = trulySaved.map(c => `<b>${c.name.toUpperCase()}</b>`).join(' e ');
+script.push({ type: 'text', content: `✨ Il pubblico ha deciso di SALVARE... ${savedNames}!`, sound: 'saved' });
+}
+
+const tiedNames = tiedForFirst.map(c => `<b>${c.name}</b>`).join(' e ');
+script.push({ type: 'text', content: `Ma attenzione... c'è un CLAMOROSO PAREGGIO al televoto tra ${tiedNames}!`, sound: 'heartbeat' });
+script.push({ type: 'text', content: "In questi casi eccezionali, il regolamento parla chiaro...", sound: 'heartbeat' });
+script.push({ type: 'text', content: "Sarò IO, in quanto conduttore sovrano, a scegliere chi di voi uscirà per sempre dalla casa.", sound: 'heartbeat' });
+script.push({ type: 'text', content: "La decisione non è stata facile, ma l'ho presa.", sound: 'heartbeat' });
+script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
+} else {
+const savedNominees = sortedNominees.filter(c => c.id !== eliminatedChar.id);
+if (savedNominees.length === 2) {
+script.push({ type: 'text', content: `✨ Il primo concorrente SALVO è... <b>${savedNominees[0].name.toUpperCase()}</b>!`, sound: 'saved' });
+script.push({ type: 'text', content: `Rimangono a rischio <b>${savedNominees[1].name}</b> e <b>${eliminatedChar.name}</b>...`, sound: 'heartbeat' });
+script.push({ type: 'text', content: "La tensione si taglia col coltello. Chi di voi due uscirà?", sound: 'heartbeat' });
+script.push({ type: 'text', content: "Il pubblico ha deciso che ad abbandonare PER SEMPRE il reality show è...", sound: 'heartbeat' });
+script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
+} else if (savedNominees.length === 1) {
+script.push({ type: 'text', content: `Siete rimasti in due: <b>${savedNominees[0].name}</b> e <b>${eliminatedChar.name}</b>.`, sound: 'heartbeat' });
+script.push({ type: 'text', content: "Solo uno di voi due continuerà l'avventura.", sound: 'heartbeat' });
+script.push({ type: 'text', content: "Il pubblico ha deciso che ad abbandonare PER SEMPRE il reality show è...", sound: 'heartbeat' });
+script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
+} else {
+script.push({ type: 'text', content: `La decisione è stata presa. L'avventura si ferma qui.`, sound: 'heartbeat' });
+script.push({ type: 'text', content: `💥 <b>${eliminatedChar.name.toUpperCase()}</b>... SEI ELIMINATO/A!`, sound: 'elimination' });
+}
+}
+
+updateLobbyState({
+gameState: 'elimination_reveal',
+eliminationScript: script,
+scriptIndex: 0,
+pendingEliminatedId: eliminatedChar.id
+});
+playSound('heartbeat');
+};
+
+useEffect(() => {
+let timer;
+if (lobbyData && lobbyData.gameState === 'elimination_reveal' && user.uid === lobbyData.host) {
+if (lobbyData.scriptIndex < lobbyData.eliminationScript.length - 1) {
+timer = setTimeout(() => {
+const nextIndex = lobbyData.scriptIndex + 1;
+updateLobbyState({ scriptIndex: nextIndex });
+}, 3000);
+}
+}
+
+// Per i client che non sono host, eseguiamo i suoni in base all'indice
+if (lobbyData && lobbyData.gameState === 'elimination_reveal' && lobbyData.eliminationScript) {
+const currentStep = lobbyData.eliminationScript[lobbyData.scriptIndex];
+if (currentStep && currentStep.sound) {
+playSound(currentStep.sound);
+}
+}
+
+return () => clearTimeout(timer);
+}, [lobbyData?.gameState, lobbyData?.scriptIndex]);
+
+const proceedToNextEpisode = () => {
+if (user.uid !== lobbyData.host) return; // Solo l'host gestisce i cambi turno
+
+const eliminatedChar = lobbyData.cast.find(c => c.id === lobbyData.pendingEliminatedId);
+const newCast = lobbyData.cast.filter(c => c.id !== lobbyData.pendingEliminatedId);
+const newEliminated = [...lobbyData.eliminated, eliminatedChar];
+
+if (newCast.length <= 1) {
+updateLobbyState({
+gameState: 'finished',
+cast: newCast,
+eliminated: newEliminated
+});
+} else {
+const nextNum = lobbyData.currentEpisodeNum + 1;
+const updated = {
+gameState: 'episode_generation',
+cast: newCast,
+eliminated: newEliminated,
+currentEpisodeNum: nextNum
+};
+updateLobbyState(updated);
+generateNextEpisode(newCast, { ...lobbyData, ...updated });
+}
+};
+
+const renderMenu = () => (
+<div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-black text-white p-6 font-sans">
+<div className="bg-white/10 p-8 rounded-3xl backdrop-blur-md shadow-2xl max-w-md w-full border border-white/20 text-center">
+<Crown className="w-16 h-16 mx-auto mb-4 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]" />
+<h1 className="text-4xl font-extrabold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500">REALITY SHOW</h1>
+<p className="text-gray-300 mb-6 text-sm">Decidi le sorti del cast. Tu sei il pubblico sovrano!</p>
+
+<div className="space-y-4 mb-6">
+<input 
+type="text" 
+placeholder="Il tuo Nickname..." 
+className="w-full bg-black/30 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+value={nickname}
+onChange={(e) => setNickname(e.target.value)}
+/>
+
+<div className="text-left">
+<label className="text-xs text-purple-300 font-bold ml-1 mb-1 block">Google Gemini API Key (Per storie IA dinamiche):</label>
+<input 
+type="password" 
+placeholder="Incolla qui la tua API Key gratuita" 
+className="w-full bg-black/50 border border-purple-500/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+value={geminiApiKey}
+onChange={(e) => {
+setGeminiApiKey(e.target.value);
+localStorage.setItem('geminiApiKey', e.target.value);
+}}
+/>
+<p className="text-[10px] text-gray-400 mt-1 ml-1">Richiedila gratuitamente su Google AI Studio per avere trame che continuano di puntata in puntata!</p>
+</div>
+</div>
+
+<div className="space-y-4 border-t border-white/10 pt-6">
+<button onClick={createLobby} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 py-3 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all">
+<Play className="w-5 h-5" /> Crea Nuova Stanza
+</button>
+
+<div className="flex gap-2">
+<input id="joinCode" type="text" placeholder="Codice Stanza" className="w-2/3 bg-black/30 border border-white/20 rounded-xl px-4 py-3 text-white text-center uppercase" />
+<button onClick={() => joinLobby(document.getElementById('joinCode').value)} className="w-1/3 bg-white/20 hover:bg-white/30 py-3 rounded-xl font-bold transition-all">
+Unisciti
+</button>
+</div>
+</div>
+</div>
+</div>
+);
+
+const renderLobbyRoom = () => {
+if (!lobbyData) return null;
+
+return (
+<div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6">
+<div className="bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-2xl w-full border border-gray-700">
+<div className="flex justify-between items-start mb-6">
+<div>
+<h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">{lobbyData.name}</h2>
+<p className="text-gray-400 mt-1">Codice Stanza: <span className="font-mono text-white bg-black/50 px-2 py-1 rounded">{lobbyData.id}</span></p>
+</div>
+<button onClick={leaveLobby} className="text-red-400 hover:text-red-300 flex items-center gap-1"><LogOut className="w-4 h-4"/> Esci</button>
+</div>
+
+<div className="mb-8">
+<h3 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Giocatori Connessi ({lobbyData.players.length})</h3>
+<div className="flex flex-wrap gap-3">
+{lobbyData.players.map(p => (
+<div key={p.id} className="bg-gray-700/50 px-4 py-2 rounded-full flex items-center gap-2 border border-gray-600">
+{p.id === lobbyData.host && <Crown className="w-4 h-4 text-yellow-400"/>}
+{p.name} {p.id === user.uid && "(Tu)"}
+</div>
+))}
+</div>
+</div>
+
+<div className="bg-purple-900/30 p-6 rounded-2xl border border-purple-500/30 space-y-6">
+<h3 className="text-xl font-bold text-purple-200 text-center">Configura il Cast</h3>
+
+<div className="flex bg-black/40 p-1.5 rounded-xl border border-purple-500/30">
+<button 
+onClick={() => setCastMode('random')}
+className={`flex-1 py-2.5 rounded-lg font-bold transition-all text-sm flex items-center justify-center gap-2 ${castMode === 'random' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+>
+🎲 Casuale (Scegli la quantità)
+</button>
+<button 
+onClick={() => {
+setCastMode('manual');
+if (manualSelectedIds.length === 0) {
+setManualSelectedIds(FULL_CAST.map(c => c.id));
+}
+}}
+className={`flex-1 py-2.5 rounded-lg font-bold transition-all text-sm flex items-center justify-center gap-2 ${castMode === 'manual' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+>
+🖐️ Manuale (Scegli i personaggi)
+</button>
+</div>
+
+{castMode === 'random' ? (
+<div className="space-y-4">
+<div className="flex justify-between items-center text-sm">
+<label className="font-semibold text-gray-300">Numero di Concorrenti:</label>
+<span className="font-mono text-xl font-bold text-purple-300 bg-purple-950/80 px-3 py-1 rounded-lg border border-purple-500/40">
+{customSize} / {FULL_CAST.length}
+</span>
+</div>
+
+<input 
+type="range" 
+min="3" 
+max={FULL_CAST.length} 
+value={customSize} 
+onChange={(e) => setCustomSize(Number(e.target.value))}
+className="w-full accent-purple-500 cursor-pointer h-2 bg-gray-700 rounded-lg"
+/>
+
+<div className="flex gap-2 pt-1">
+{[6, 12, 18, 24, FULL_CAST.length].map(num => (
+<button
+key={num}
+onClick={() => setCustomSize(num)}
+className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border ${customSize === num ? 'bg-purple-600 border-purple-400 text-white shadow' : 'bg-black/30 border-gray-700 text-gray-400 hover:bg-black/50 hover:text-white'}`}
+>
+{num === FULL_CAST.length ? 'Tutti (38)' : num}
+</button>
+))}
+</div>
+</div>
+) : (
+<div className="space-y-4">
+<div className="flex justify-between items-center text-sm">
+<span className="font-semibold text-gray-300">
+Concorrenti Selezionati: <b className="text-purple-300 font-mono text-base">{manualSelectedIds.length}</b> / {FULL_CAST.length}
+</span>
+<div className="flex gap-2">
+<button 
+onClick={() => setManualSelectedIds(FULL_CAST.map(c => c.id))}
+className="text-xs bg-purple-950 hover:bg-purple-900 border border-purple-500/40 px-2.5 py-1 rounded-md text-purple-300 transition-all font-semibold"
+>
+Seleziona Tutti
+</button>
+<button 
+onClick={() => setManualSelectedIds([])}
+className="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-600 px-2.5 py-1 rounded-md text-gray-300 transition-all font-semibold"
+>
+Deseleziona
+</button>
+</div>
+</div>
+
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto custom-scrollbar p-2 bg-black/40 rounded-xl border border-gray-700">
+{FULL_CAST.map(c => {
+const isSelected = manualSelectedIds.includes(c.id);
+return (
+<div 
+key={c.id}
+onClick={() => {
+if (isSelected) {
+setManualSelectedIds(prev => prev.filter(id => id !== c.id));
+} else {
+setManualSelectedIds(prev => [...prev, c.id]);
+}
+}}
+className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all border select-none ${isSelected ? 'bg-purple-900/70 border-purple-400 text-white shadow-md' : 'bg-gray-800/40 border-gray-700/50 text-gray-400 opacity-60 hover:opacity-100'}`}
+>
+<img src={c.img} alt={c.name} className="w-8 h-8 rounded-lg object-cover" onError={(e) => e.target.src = `https://placehold.co/100x100/4c1d95/ffffff?text=${c.name}`} />
+<span className="text-xs font-bold truncate">{c.name}</span>
+</div>
+);
+})}
+</div>
+</div>
+)}
+
+<button 
+onClick={startCustomGame} 
+disabled={castMode === 'manual' && manualSelectedIds.length < 3}
+className={`w-full py-4 rounded-xl font-extrabold text-lg shadow-xl flex items-center justify-center gap-2 transition-all ${
+                                       castMode === 'manual' && manualSelectedIds.length < 3 
+                                           ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                                           : 'bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white hover:scale-[1.02]'
+                                   }`}
+>
+<Play className="w-5 h-5 fill-current" /> Avvia Reality Show ({castMode === 'random' ? customSize : manualSelectedIds.length} Concorrenti)
+</button>
+</div>
+</div>
+</div>
+);
+};
+
+const renderGame = () => {
+if (!lobbyData) return null;
+const { gameState, currentEpisodeNum, cast, eliminated, currentEpisodeText, immuneId, nominees, publicVotes, scriptIndex, eliminationScript } = lobbyData;
+
+return (
+<div className="flex flex-col h-screen bg-gray-900 text-white overflow-hidden">
+{/* Cast Bar */}
+<div className="bg-gray-800/90 backdrop-blur-md border-b border-gray-700 p-3 shadow-lg">
+<div className="max-w-6xl mx-auto flex items-center justify-between gap-2 mb-2">
+<div className="flex items-center gap-2">
+<Users className="w-5 h-5 text-purple-400" />
+<span className="font-bold text-sm text-purple-300">Cast in Gara ({cast.length})</span>
+</div>
+{eliminated.length > 0 && (
+<div className="text-xs text-red-400 font-semibold flex items-center gap-1">
+<Skull className="w-4 h-4" /> Eliminati: {eliminated.length}
+</div>
+)}
+</div>
+<div className="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar max-w-6xl mx-auto">
+{cast.map(c => {
+const isImmune = c.id === immuneId;
+const isNominated = nominees && nominees.some(n => n.id === c.id);
+return (
+<div key={c.id} className="flex-shrink-0 flex flex-col items-center group relative">
+<div className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 ${isImmune ? 'border-yellow-400 ring-2 ring-yellow-400/50' : isNominated ? 'border-red-500 ring-2 ring-red-500/80 shadow-[0_0_12px_rgba(239,68,68,0.9)]' : 'border-gray-600'} shadow-md transition-transform group-hover:scale-105`}>
+<img src={c.img} alt={c.name} className="w-full h-full object-cover" onError={(e) => e.target.src = `https://placehold.co/100x100/4c1d95/ffffff?text=${c.name}`} />
+{isImmune && (
+<div className="absolute top-0 right-0 bg-yellow-500 p-0.5 rounded-bl z-10">
+<Crown className="w-3 h-3 text-black fill-black" />
+</div>
+)}
+</div>
+<span className={`text-[10px] font-medium truncate max-w-[56px] text-center mt-1 group-hover:text-white ${isNominated ? 'text-red-400 font-bold drop-shadow-[0_0_2px_rgba(239,68,68,0.8)]' : 'text-gray-300'}`}>
+{c.name}
+</span>
+</div>
+);
+})}
+</div>
+</div>
+
+{/* Main Stage */}
+<div className="flex-1 flex flex-col h-full overflow-y-auto relative p-6 max-w-4xl mx-auto w-full">
+{gameState === 'episode_generation' && (
+<div className="flex flex-col items-center justify-center my-auto text-center">
+<RefreshCw className="w-12 h-12 text-purple-500 animate-spin mb-4" />
+<h3 className="text-xl font-bold">Generazione Episodio {currentEpisodeNum}...</h3>
+<p className="text-gray-400 mt-2">Gemini sta scrivendo un racconto succoso e scandaloso!</p>
+</div>
+)}
+
+{gameState === 'episode_reading' && (
+<div className="space-y-6 my-auto">
+<h2 className="text-2xl font-bold text-purple-400">{currentEpisodeNum === 1 ? 'Settimana 1 - Ingresso nella Casa!' : `Riassunto della Settimana ${currentEpisodeNum}`}</h2>
+<div className="story-text bg-gray-800 p-5 rounded-2xl border border-gray-700 font-serif text-sm md:text-base text-gray-200" dangerouslySetInnerHTML={{__html: currentEpisodeText}}></div>
+
+<div className="bg-gray-800/80 p-4 rounded-xl border border-gray-700 flex flex-col items-center gap-3 mt-8">
+<p className="text-gray-300 font-semibold text-sm">
+Giocatori pronti per le nomination: <span className="text-white font-bold">{lobbyData.readyForNomination?.length || 0} / {lobbyData.players.length}</span>
+</p>
+<button 
+onClick={() => {
+const currentReady = lobbyData.readyForNomination || [];
+let newReady = [...currentReady];
+
+if (newReady.includes(user.uid)) {
+newReady = newReady.filter(id => id !== user.uid);
+} else {
+newReady.push(user.uid);
+}
+
+if (newReady.length >= lobbyData.players.length) {
+updateLobbyState({ gameState: 'house_nomination', readyForNomination: [] });
+} else {
+updateLobbyState({ readyForNomination: newReady });
+}
+}} 
+className={`w-full py-4 rounded-xl font-bold text-xl transition-all shadow-lg flex justify-center items-center gap-2 ${
+                                               (lobbyData.readyForNomination || []).includes(user.uid)
+                                               ? 'bg-green-600 hover:bg-green-500 text-white border-b-4 border-green-800 transform translate-y-1'
+                                               : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] border-b-4 border-purple-800'
+                                           }`}
+>
+{(lobbyData.readyForNomination || []).includes(user.uid) ? 'Pronto (In attesa...)' : 'Sono Pronto per le Nomination!'} 
+{(lobbyData.readyForNomination || []).includes(user.uid) ? <CheckCircle className="w-6 h-6" /> : <ArrowRight className="w-6 h-6" />}
+</button>
+</div>
+</div>
+)}
+
+{gameState === 'house_nomination' && (
+<div className="space-y-6 my-auto text-center bg-gray-800 p-8 rounded-3xl border border-gray-700 shadow-2xl">
+<Users className="w-16 h-16 text-purple-400 mx-auto" />
+<h3 className="text-3xl font-extrabold text-purple-300">CONFESSIONALE SEGRETO DELLA CASA</h3>
+<p className="text-gray-300 max-w-xl mx-auto">I concorrenti stanno entrando uno ad uno nel confessionale per votarsi a vicenda in gran segreto. Nessuno di loro sa chi verrà nominato!</p>
+
+<div className="p-4 bg-purple-950/50 rounded-2xl border border-purple-500/30 text-sm text-purple-200">
+💡 <b>Regola del Pubblico:</b> Votano solo i concorrenti della casa tra di loro! I più votati finiranno al tuo giudizio al Televoto!
+</div>
+
+{user.uid === lobbyData.host ? (
+<button onClick={processHouseNominations} className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-bold text-xl hover:scale-[1.02] transition-all shadow-lg flex items-center justify-center gap-2">
+Scopri i Nominati della Casa <ArrowRight />
+</button>
+) : (
+<p className="text-purple-400 mt-4 animate-pulse">In attesa che l'Host processi le nomination...</p>
+)}
+</div>
+)}
+
+{gameState === 'public_voting' && (
+<div className="space-y-6 my-auto">
+<div className="text-center mb-6">
+<h3 className="text-3xl font-extrabold text-red-500">TELEVOTO DEL PUBBLICO</h3>
+<p className="text-gray-200 text-lg">La casa ha fatto le sue scelte! Ecco i 3 concorrenti a rischio. <b>Chi vuoi ELIMINARE dal programma?</b></p>
+</div>
+
+{publicVotes[user.uid] ? (
+<div className="text-center bg-gray-800 p-8 rounded-2xl border border-gray-700">
+<CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+<h4 className="text-2xl font-bold">Voto Registrato con successo!</h4>
+<p className="text-gray-400 mt-2">In attesa che gli altri giocatori votino...</p>
+</div>
+) : (
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+{nominees.map(c => (
+<div 
+key={c.id} 
+onClick={() => submitPublicVote(c.id)}
+className="relative cursor-pointer group rounded-2xl overflow-hidden border-2 border-red-500 hover:border-red-400 hover:scale-105 transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.7)] bg-gradient-to-b from-gray-800 to-red-950 flex flex-col items-center p-5 text-center"
+>
+<div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<img src={c.img} alt={c.name} className="w-32 h-32 rounded-xl object-cover mb-3 shadow-[0_0_15px_rgba(0,0,0,0.5)] border-2 border-red-500/50 relative z-10" onError={(e) => e.target.src = `https://placehold.co/150x150/1f2937/ffffff?text=${c.name}`} />
+<span className="font-extrabold text-2xl text-white drop-shadow-md relative z-10">{c.name}</span>
+<span className="text-xs text-white font-black tracking-wider uppercase mt-2 bg-gradient-to-r from-red-600 to-red-400 px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.6)] relative z-10 animate-pulse">IN NOMINATION</span>
+<button className="mt-5 w-full bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white py-3 rounded-xl font-bold shadow-lg transition-all transform group-hover:-translate-y-1 relative z-10 border border-red-400/50">
+Vota x Eliminare
+</button>
+</div>
+))}
+</div>
+)}
+</div>
+)}
+
+{gameState === 'elimination_reveal' && (
+<div className="my-auto suspense-box bg-gray-800/90 backdrop-blur-lg p-8 rounded-3xl border-2 border-red-500/50 text-center space-y-6 shadow-2xl">
+<h3 className="text-2xl font-bold text-red-400 uppercase tracking-widest border-b border-red-500/30 pb-3">IL VERDETTO DEL PUBBLICO</h3>
+
+<div className="flex justify-center gap-4 md:gap-8 my-6">
+{nominees.map(c => {
+const isRevealPhase = scriptIndex >= eliminationScript.length - 1;
+const isEliminated = c.id === lobbyData.pendingEliminatedId;
+const isSafeNow = isRevealPhase && !isEliminated;
+
+return (
+<div key={c.id} className={`flex flex-col items-center transition-all duration-700 ${isRevealPhase && isEliminated ? 'scale-110 z-10' : isSafeNow ? 'opacity-40 scale-90 grayscale' : 'scale-100 animate-pulse'}`}>
+<div className={`w-20 h-20 md:w-28 md:h-28 rounded-2xl overflow-hidden border-4 shadow-xl transition-colors duration-500 ${isRevealPhase && isEliminated ? 'border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.9)]' : isSafeNow ? 'border-green-500' : 'border-gray-500'}`}>
+<img src={c.img} alt={c.name} className="w-full h-full object-cover" onError={(e) => e.target.src = `https://placehold.co/150x150/1f2937/ffffff?text=${c.name}`} />
+</div>
+<span className={`mt-3 font-extrabold uppercase tracking-wide transition-colors ${isRevealPhase && isEliminated ? 'text-red-500 text-xl' : isSafeNow ? 'text-green-500 text-sm' : 'text-gray-300'}`}>
+{c.name}
+</span>
+</div>
+)
+})}
+</div>
+
+<div className="min-h-[160px] flex flex-col justify-center items-center space-y-4">
+{eliminationScript.slice(0, scriptIndex + 1).map((step, idx) => (
+<p 
+key={idx} 
+className={`transition-all duration-500 ${idx === scriptIndex ? 'scale-110' : 'opacity-50'} ${idx === eliminationScript.length - 1 ? 'text-red-500 font-extrabold text-3xl md:text-4xl mt-4 animate-bounce' : 'text-lg md:text-2xl font-serif text-gray-100'}`}
+dangerouslySetInnerHTML={{__html: step.content}}
+></p>
+))}
+</div>
+
+{scriptIndex >= eliminationScript.length - 1 && user.uid === lobbyData.host && (
+<button onClick={proceedToNextEpisode} className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 px-10 py-4 rounded-full font-extrabold text-lg shadow-xl hover:scale-105 transition-all">
+Prosegui al Prossimo Episodio
+</button>
+)}
+</div>
+)}
+
+{gameState === 'finished' && (
+<div className="text-center space-y-6 my-auto bg-gray-800 p-8 rounded-3xl border border-yellow-500 shadow-2xl">
+<Crown className="w-24 h-24 text-yellow-400 mx-auto animate-bounce" />
+<h2 className="text-4xl md:text-5xl font-extrabold text-yellow-400">ABBIAMO UN VINCITORE!</h2>
+<p className="text-2xl md:text-3xl text-gray-200">Trionfa la stagione: <span className="font-extrabold text-white bg-purple-600/50 px-4 py-1 rounded-xl">{cast[0]?.name}</span>!</p>
+<button onClick={leaveLobby} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 px-8 py-3 rounded-xl font-bold text-lg shadow-lg">Torna al Menu</button>
+</div>
+)}
+</div>
+</div>
+);
+};
+
+switch (view) {
+case 'menu': return renderMenu();
+case 'lobby': return renderLobbyRoom();
+case 'game': return renderGame();
+default: return renderMenu();
+}
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<RealityShowGame />);
+</script>
 </body>
-</html>
