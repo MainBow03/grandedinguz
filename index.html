@@ -101,19 +101,28 @@
         const Home = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const RefreshCw = (props) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'reality-show-app-default';
+        // INIZIALIZZAZIONE FIREBASE (Con Configurazione Aggiunta)
+        const appId = "1:216458781312:web:2c396c1f781f6f6182bc65";
         let db = null;
         let auth = null;
         let isFirebaseAvailable = false;
 
         try {
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-            if (firebaseConfig && firebaseConfig.apiKey) {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                auth = firebase.auth();
-                isFirebaseAvailable = true;
-            }
+            const firebaseConfig = {
+              apiKey: "AIzaSyCHPpWKT0HHzfuThxchIoWF_LdQYMyvBiE",
+              authDomain: "big-brother-votazioni.firebaseapp.com",
+              projectId: "big-brother-votazioni",
+              storageBucket: "big-brother-votazioni.firebasestorage.app",
+              messagingSenderId: "216458781312",
+              appId: "1:216458781312:web:2c396c1f781f6f6182bc65",
+              measurementId: "G-TCSS4RWHFZ"
+            };
+            
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            isFirebaseAvailable = true;
+            console.log("Firebase collegato con successo!");
         } catch (e) {
             console.warn("Firebase non configurato o in modalità locale/offline:", e);
         }
@@ -225,7 +234,7 @@
             { id: "ferocia", name: "Ferocia", img: "https://i.pinimg.com/736x/9c/31/15/9c31155d6aa8c5ee9b807c9d022d0fcb.jpg" },
             { id: "yzma", name: "Yzma", img: "https://i.pinimg.com/736x/74/4a/5e/744a5e33c09419f27d951f1851ddcff3.jpg" },
             { id: "timmy", name: "Timmy", img: "https://i.pinimg.com/736x/29/7d/9b/297d9b0fb4cbb4667a8082e32e5b8482.jpg" },
-            { id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e7/46/82e7461e1f194725e93e786a5ef94c31.jpg" },
+            { id: "cosmo", name: "Cosmo", img: "https://i.pinimg.com/736x/82/e746/82e7461e1f194725e93e786a5ef94c31.jpg" },
             { id: "wanda", name: "Wanda", img: "https://i.pinimg.com/736x/99/87/b7/9987b79d555daf6e60f2c501064ac38f.jpg" },
             { id: "vicky", name: "Vicky", img: "https://i.pinimg.com/736x/ba/3d/43/ba3d439aeb0206dffad3edc934a07e00.jpg" },
             { id: "phineas", name: "Phineas", img: "https://i.pinimg.com/736x/12/15/26/121526111b6f2e460b21722b25269642.jpg" },
